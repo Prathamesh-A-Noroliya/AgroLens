@@ -3,12 +3,14 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useLocation } from "wouter";
 import {
   Camera, CloudUpload, Leaf, Microscope, TreeDeciduous,
-  ChevronDown, X, CheckCircle2, Loader2, ImageIcon,
+  X, CheckCircle2, Loader2, ImageIcon, Plus, AlertCircle,
+  MapPin, Sprout,
 } from "lucide-react";
 import AppLayout from "@/components/layout/AppLayout";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
@@ -26,36 +28,28 @@ const SOIL_TYPES = [
   "Arid (Desert)", "Loamy", "Sandy", "Clay", "Silt",
 ];
 
-const CAPTURE_GUIDES = [
-  {
-    icon: TreeDeciduous,
-    title: "Whole Plant",
-    desc: "Step back 1–2 metres and capture the full plant",
-    color: "text-emerald-500",
-    bg: "bg-emerald-50",
-  },
-  {
-    icon: Leaf,
-    title: "Leaf Close-up",
-    desc: "Get 15–20 cm close to show any spots or discolouration",
-    color: "text-blue-500",
-    bg: "bg-blue-50",
-  },
-  {
-    icon: Microscope,
-    title: "Soil / Root",
-    desc: "Show the base of the plant and surrounding soil",
-    color: "text-amber-500",
-    bg: "bg-amber-50",
-  },
+const GROWTH_STAGES = [
+  "Seedling (0–3 weeks)", "Vegetative (3–6 weeks)", "Tillering / Branching",
+  "Flowering / Booting", "Grain Filling / Fruiting", "Maturity / Harvest",
+];
+
+type PhotoSlot = "whole" | "leaf" | "soil";
+
+const PHOTO_SLOTS: Array<{
+  id: PhotoSlot; icon: React.ElementType; title: string; hint: string; color: string; bg: string; border: string;
+}> = [
+  { id: "whole", icon: TreeDeciduous, title: "Whole Plant", hint: "Step back 1–2 m, capture full plant + surroundings", color: "text-emerald-600", bg: "bg-emerald-50", border: "border-emerald-200" },
+  { id: "leaf", icon: Leaf, title: "Leaf Close-up", hint: "15–20 cm away — show spots, discolouration, texture", color: "text-blue-600", bg: "bg-blue-50", border: "border-blue-200" },
+  { id: "soil", icon: ImageIcon, title: "Soil / Root", hint: "Show plant base, root zone and surrounding soil", color: "text-amber-600", bg: "bg-amber-50", border: "border-amber-200" },
 ];
 
 const STAGES = [
-  "Uploading image...",
-  "Pre-processing pixels...",
-  "Running disease model...",
-  "Comparing symptom database...",
-  "Generating diagnosis...",
+  "Uploading photos…",
+  "Pre-processing images…",
+  "Running multi-angle AI model…",
+  "Cross-referencing disease database…",
+  "Generating dual diagnosis…",
+  "Compiling treatment report…",
 ];
 
 export default function ScanPage() {
@@ -64,76 +58,90 @@ export default function ScanPage() {
 
   const [cropType, setCropType] = useState("");
   const [soilType, setSoilType] = useState("");
-  const [dragging, setDragging] = useState(false);
-  const [file, setFile] = useState<File | null>(null);
-  const [preview, setPreview] = useState<string | null>(null);
+  const [growthStage, setGrowthStage] = useState("");
+  const [fieldName, setFieldName] = useState("");
+
+  const [photos, setPhotos] = useState<Record<PhotoSlot, { file: File; url: string } | null>>({
+    whole: null, leaf: null, soil: null,
+  });
+  const [dragOver, setDragOver] = useState<PhotoSlot | null>(null);
+  const [errors, setErrors] = useState<Record<PhotoSlot, string>>({ whole: "", leaf: "", soil: "" });
   const [analyzing, setAnalyzing] = useState(false);
   const [progress, setProgress] = useState(0);
   const [stage, setStage] = useState(0);
-  const [error, setError] = useState("");
-  const fileRef = useRef<HTMLInputElement>(null);
+  const [submitAttempted, setSubmitAttempted] = useState(false);
 
-  const handleFile = (f: File) => {
-    if (!f.type.startsWith("image/")) {
-      setError("Please upload a valid image file (JPG, PNG, WEBP).");
-      return;
-    }
-    if (f.size > 10 * 1024 * 1024) {
-      setError("File is too large. Please use an image under 10 MB.");
-      return;
-    }
-    setError("");
-    setFile(f);
-    setPreview(URL.createObjectURL(f));
+  const fileRefs = {
+    whole: useRef<HTMLInputElement>(null),
+    leaf: useRef<HTMLInputElement>(null),
+    soil: useRef<HTMLInputElement>(null),
   };
 
-  const onDrop = useCallback((e: React.DragEvent) => {
+  const validateFile = (f: File, slot: PhotoSlot): boolean => {
+    if (!f.type.startsWith("image/")) {
+      setErrors((prev) => ({ ...prev, [slot]: "Please upload a valid image (JPG, PNG, WEBP)." }));
+      return false;
+    }
+    if (f.size > 15 * 1024 * 1024) {
+      setErrors((prev) => ({ ...prev, [slot]: "File is too large. Max 15 MB." }));
+      return false;
+    }
+    setErrors((prev) => ({ ...prev, [slot]: "" }));
+    return true;
+  };
+
+  const handleFile = (slot: PhotoSlot, f: File) => {
+    if (!validateFile(f, slot)) return;
+    setPhotos((prev) => ({ ...prev, [slot]: { file: f, url: URL.createObjectURL(f) } }));
+  };
+
+  const clearPhoto = (slot: PhotoSlot) => {
+    setPhotos((prev) => ({ ...prev, [slot]: null }));
+    if (fileRefs[slot].current) fileRefs[slot].current!.value = "";
+  };
+
+  const handleDrop = useCallback((slot: PhotoSlot, e: React.DragEvent) => {
     e.preventDefault();
-    setDragging(false);
-    const dropped = e.dataTransfer.files[0];
-    if (dropped) handleFile(dropped);
+    setDragOver(null);
+    const f = e.dataTransfer.files[0];
+    if (f) handleFile(slot, f);
   }, []);
 
-  const onDragOver = (e: React.DragEvent) => { e.preventDefault(); setDragging(true); };
-  const onDragLeave = () => setDragging(false);
-
-  const onInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files?.[0]) handleFile(e.target.files[0]);
-  };
-
-  const clearFile = () => {
-    setFile(null);
-    setPreview(null);
-    setProgress(0);
-    setStage(0);
-    if (fileRef.current) fileRef.current.value = "";
-  };
-
-  const canAnalyze = file && cropType && soilType;
+  const photosUploaded = PHOTO_SLOTS.filter((s) => photos[s.id] !== null).length;
+  const allPhotos = photosUploaded === 3;
+  const allFields = cropType && soilType && growthStage;
+  const canAnalyze = allPhotos && allFields;
 
   const runAnalysis = async () => {
-    if (!canAnalyze || !preview) return;
+    setSubmitAttempted(true);
+    if (!canAnalyze) return;
     setAnalyzing(true);
     setProgress(0);
     setStage(0);
 
-    const totalDuration = 3200;
-    const steps = STAGES.length;
+    const totalDuration = 4000;
     for (let i = 0; i <= 100; i++) {
       await new Promise((r) => setTimeout(r, totalDuration / 100));
       setProgress(i);
-      setStage(Math.min(Math.floor((i / 100) * steps), steps - 1));
+      setStage(Math.min(Math.floor((i / 100) * STAGES.length), STAGES.length - 1));
     }
 
     setScanData({
-      imageUrl: preview,
-      imageName: file!.name,
+      photos: PHOTO_SLOTS.map((s) => ({
+        url: photos[s.id]!.url,
+        name: photos[s.id]!.file.name,
+        type: s.id,
+      })),
       cropType,
       soilType,
+      growthStage,
+      fieldName: fieldName || "My Field",
     });
 
     navigate("/scan/result");
   };
+
+  const missingFields = submitAttempted && !canAnalyze;
 
   return (
     <AppLayout>
@@ -147,274 +155,304 @@ export default function ScanPage() {
         <div>
           <h1 className="text-2xl font-bold text-foreground">AI Crop Scan</h1>
           <p className="text-muted-foreground text-sm mt-1">
-            Upload a clear photo and let BHOOMI's AI detect diseases instantly.
+            Upload 3 photos and fill all details — BHOOMI AI will give you 2 possible diagnoses.
           </p>
         </div>
 
-        {/* Crop & Soil selectors */}
+        {/* Progress indicator */}
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+            <span className={cn("font-bold", allFields ? "text-emerald-600" : "text-foreground")}>
+              {allFields ? "✓" : "①"} Field Info
+            </span>
+          </div>
+          <div className="flex-1 h-1 bg-muted rounded-full overflow-hidden">
+            <div className={cn("h-full rounded-full transition-all duration-500", allFields ? "bg-emerald-500 w-full" : "bg-primary w-0")} />
+          </div>
+          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+            <span className={cn("font-bold", allPhotos ? "text-emerald-600" : "text-foreground")}>
+              {allPhotos ? "✓" : "②"} 3 Photos ({photosUploaded}/3)
+            </span>
+          </div>
+          <div className="flex-1 h-1 bg-muted rounded-full overflow-hidden">
+            <div className="h-full rounded-full bg-primary transition-all duration-500" style={{ width: `${(photosUploaded / 3) * 100}%` }} />
+          </div>
+          <span className={cn("text-xs font-bold", canAnalyze ? "text-emerald-600" : "text-muted-foreground")}>
+            ③ Analyse
+          </span>
+        </div>
+
+        {/* ── Field Information ─────────────────────────── */}
         <Card className="rounded-2xl border-border/60 shadow-sm">
-          <CardContent className="p-5 grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="space-y-1.5">
-              <Label className="text-sm font-medium flex items-center gap-1.5">
-                <Leaf className="h-3.5 w-3.5 text-primary" /> Crop Type
-              </Label>
-              <Select onValueChange={setCropType} value={cropType}>
-                <SelectTrigger className="h-11 rounded-xl">
-                  <SelectValue placeholder="Select your crop" />
-                </SelectTrigger>
-                <SelectContent>
-                  {CROP_TYPES.map((c) => (
-                    <SelectItem key={c} value={c.toLowerCase()}>{c}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-1.5">
-              <Label className="text-sm font-medium flex items-center gap-1.5">
-                <ImageIcon className="h-3.5 w-3.5 text-amber-500" /> Soil Type
-              </Label>
-              <Select onValueChange={setSoilType} value={soilType}>
-                <SelectTrigger className="h-11 rounded-xl">
-                  <SelectValue placeholder="Select soil type" />
-                </SelectTrigger>
-                <SelectContent>
-                  {SOIL_TYPES.map((s) => (
-                    <SelectItem key={s} value={s.toLowerCase().replace(/[\s/()&]/g, "-")}>{s}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+          <CardContent className="p-5 space-y-4">
+            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-widest flex items-center gap-1.5">
+              <Sprout className="h-3.5 w-3.5" /> Crop & Field Information
+              <span className="text-red-500 ml-0.5">* Required</span>
+            </p>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {/* Crop Type */}
+              <div className="space-y-1.5">
+                <Label className="text-sm font-medium flex items-center gap-1.5">
+                  <Leaf className="h-3.5 w-3.5 text-primary" /> Crop Type <span className="text-red-500">*</span>
+                </Label>
+                <Select onValueChange={setCropType} value={cropType}>
+                  <SelectTrigger className={cn("h-11 rounded-xl", submitAttempted && !cropType && "border-red-400 ring-1 ring-red-300")}>
+                    <SelectValue placeholder="Select your crop" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {CROP_TYPES.map((c) => (
+                      <SelectItem key={c} value={c.toLowerCase()}>{c}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {submitAttempted && !cropType && <p className="text-red-500 text-[11px]">Please select a crop type</p>}
+              </div>
+
+              {/* Soil Type */}
+              <div className="space-y-1.5">
+                <Label className="text-sm font-medium flex items-center gap-1.5">
+                  <ImageIcon className="h-3.5 w-3.5 text-amber-500" /> Soil Type <span className="text-red-500">*</span>
+                </Label>
+                <Select onValueChange={setSoilType} value={soilType}>
+                  <SelectTrigger className={cn("h-11 rounded-xl", submitAttempted && !soilType && "border-red-400 ring-1 ring-red-300")}>
+                    <SelectValue placeholder="Select soil type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {SOIL_TYPES.map((s) => (
+                      <SelectItem key={s} value={s.toLowerCase().replace(/[\s/()&]/g, "-")}>{s}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {submitAttempted && !soilType && <p className="text-red-500 text-[11px]">Please select a soil type</p>}
+              </div>
+
+              {/* Growth Stage */}
+              <div className="space-y-1.5">
+                <Label className="text-sm font-medium flex items-center gap-1.5">
+                  <Sprout className="h-3.5 w-3.5 text-emerald-500" /> Growth Stage <span className="text-red-500">*</span>
+                </Label>
+                <Select onValueChange={setGrowthStage} value={growthStage}>
+                  <SelectTrigger className={cn("h-11 rounded-xl", submitAttempted && !growthStage && "border-red-400 ring-1 ring-red-300")}>
+                    <SelectValue placeholder="Select growth stage" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {GROWTH_STAGES.map((g) => (
+                      <SelectItem key={g} value={g}>{g}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {submitAttempted && !growthStage && <p className="text-red-500 text-[11px]">Please select a growth stage</p>}
+              </div>
+
+              {/* Field Name (optional) */}
+              <div className="space-y-1.5">
+                <Label className="text-sm font-medium flex items-center gap-1.5">
+                  <MapPin className="h-3.5 w-3.5 text-blue-500" /> Field Name
+                  <span className="text-muted-foreground text-[11px] font-normal">(optional)</span>
+                </Label>
+                <Input
+                  placeholder="e.g. Field A, North Plot…"
+                  className="h-11 rounded-xl"
+                  value={fieldName}
+                  onChange={(e) => setFieldName(e.target.value)}
+                />
+              </div>
             </div>
           </CardContent>
         </Card>
 
-        {/* Capture Guide */}
+        {/* ── 3 Photo Upload Slots ──────────────────────── */}
         <div>
-          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-widest mb-3">
-            How to take a good photo
-          </p>
-          <div className="grid grid-cols-3 gap-3">
-            {CAPTURE_GUIDES.map(({ icon: Icon, title, desc, color, bg }) => (
-              <Card key={title} className="rounded-2xl border-border/60 shadow-sm">
-                <CardContent className="p-3 sm:p-4 text-center space-y-2">
-                  <div className={`w-10 h-10 rounded-xl ${bg} flex items-center justify-center mx-auto`}>
-                    <Icon className={`h-5 w-5 ${color}`} />
-                  </div>
-                  <p className="text-xs font-semibold text-foreground">{title}</p>
-                  <p className="text-[11px] text-muted-foreground leading-snug hidden sm:block">{desc}</p>
-                </CardContent>
-              </Card>
-            ))}
+          <div className="flex items-center justify-between mb-3">
+            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">
+              Upload 3 Photos <span className="text-red-500">* All Required</span>
+            </p>
+            <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+              <span className={cn("font-bold tabular-nums", allPhotos ? "text-emerald-600" : "text-foreground")}>{photosUploaded}/3</span> uploaded
+            </div>
           </div>
-        </div>
 
-        {/* Upload Zone */}
-        <div>
-          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-widest mb-3">
-            Upload Image
-          </p>
-          <AnimatePresence mode="wait">
-            {!preview ? (
-              <motion.div
-                key="dropzone"
-                initial={{ opacity: 0, scale: 0.98 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.96 }}
-                transition={{ duration: 0.2 }}
-              >
-                <div
-                  onDrop={onDrop}
-                  onDragOver={onDragOver}
-                  onDragLeave={onDragLeave}
-                  onClick={() => fileRef.current?.click()}
-                  className={cn(
-                    "relative border-2 border-dashed rounded-2xl p-8 text-center cursor-pointer transition-all duration-200 group",
-                    dragging
-                      ? "border-primary bg-primary/5 scale-[1.01]"
-                      : "border-border hover:border-primary/50 hover:bg-primary/3"
-                  )}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            {PHOTO_SLOTS.map(({ id, icon: Icon, title, hint, color, bg, border }) => {
+              const photo = photos[id];
+              const hasError = submitAttempted && !photo;
+              const isDragging = dragOver === id;
+
+              return (
+                <motion.div
+                  key={id}
+                  initial={{ opacity: 0, y: 12 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: PHOTO_SLOTS.findIndex((s) => s.id === id) * 0.1 }}
                 >
                   <input
-                    ref={fileRef}
+                    ref={fileRefs[id]}
                     type="file"
                     accept="image/*"
                     capture="environment"
                     className="hidden"
-                    onChange={onInputChange}
+                    onChange={(e) => { if (e.target.files?.[0]) handleFile(id, e.target.files[0]); }}
                   />
-                  <div className="flex flex-col items-center gap-3">
-                    <motion.div
-                      animate={dragging ? { scale: 1.15, y: -4 } : { scale: 1, y: 0 }}
-                      className={cn(
-                        "w-16 h-16 rounded-2xl flex items-center justify-center transition-colors duration-200",
-                        dragging ? "bg-primary text-primary-foreground" : "bg-muted group-hover:bg-primary/10"
-                      )}
-                    >
-                      <CloudUpload className={cn("h-7 w-7 transition-colors", dragging ? "text-white" : "text-muted-foreground group-hover:text-primary")} />
-                    </motion.div>
 
-                    <div>
-                      <p className="font-semibold text-foreground text-sm">
-                        {dragging ? "Release to upload" : "Drag & drop your photo here"}
-                      </p>
-                      <p className="text-xs text-muted-foreground mt-0.5">
-                        or tap to browse / use camera
-                      </p>
-                    </div>
-
-                    <div className="flex items-center gap-3">
-                      <div className="flex items-center gap-1.5 bg-blue-50 border border-blue-200 text-blue-700 rounded-full px-3 py-1.5 text-xs font-medium cursor-pointer">
-                        <Camera className="h-3.5 w-3.5" />
-                        Take Photo
-                      </div>
-                      <div className="flex items-center gap-1.5 bg-muted text-muted-foreground rounded-full px-3 py-1.5 text-xs font-medium">
-                        <CloudUpload className="h-3.5 w-3.5" />
-                        Choose File
-                      </div>
-                    </div>
-
-                    <p className="text-[11px] text-muted-foreground">
-                      JPG, PNG, WEBP · Max 10 MB
-                    </p>
-                  </div>
-                </div>
-                {error && (
-                  <p className="text-destructive text-xs mt-2 flex items-center gap-1.5">
-                    <X className="h-3.5 w-3.5" /> {error}
-                  </p>
-                )}
-              </motion.div>
-            ) : (
-              <motion.div
-                key="preview"
-                initial={{ opacity: 0, scale: 0.96 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.25 }}
-              >
-                <Card className="rounded-2xl border-border/60 shadow-sm overflow-hidden">
-                  <div className="relative">
-                    <img
-                      src={preview}
-                      alt="Uploaded crop"
-                      className="w-full h-52 object-cover"
-                    />
-                    {!analyzing && (
-                      <button
-                        onClick={clearFile}
-                        className="absolute top-3 right-3 w-8 h-8 rounded-full bg-black/60 flex items-center justify-center text-white hover:bg-black/80 transition-colors"
-                        aria-label="Remove image"
+                  <AnimatePresence mode="wait">
+                    {photo ? (
+                      /* Photo uploaded — show preview */
+                      <motion.div
+                        key="preview"
+                        initial={{ opacity: 0, scale: 0.95 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="relative rounded-2xl overflow-hidden border-2 border-emerald-400 shadow-sm"
                       >
-                        <X className="h-4 w-4" />
-                      </button>
+                        <img src={photo.url} alt={title} className="w-full h-36 object-cover" />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                        <div className="absolute bottom-0 left-0 right-0 p-2.5">
+                          <div className="flex items-center gap-1.5">
+                            <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400 shrink-0" />
+                            <p className="text-white text-[11px] font-semibold truncate">{title}</p>
+                          </div>
+                        </div>
+                        {!analyzing && (
+                          <button
+                            onClick={() => clearPhoto(id)}
+                            className="absolute top-2 right-2 w-7 h-7 rounded-full bg-black/60 flex items-center justify-center text-white hover:bg-black/80 transition-colors"
+                          >
+                            <X className="h-3.5 w-3.5" />
+                          </button>
+                        )}
+                      </motion.div>
+                    ) : (
+                      /* Empty upload zone */
+                      <motion.div
+                        key="dropzone"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        onDrop={(e) => handleDrop(id, e)}
+                        onDragOver={(e) => { e.preventDefault(); setDragOver(id); }}
+                        onDragLeave={() => setDragOver(null)}
+                        onClick={() => fileRefs[id].current?.click()}
+                        className={cn(
+                          "border-2 border-dashed rounded-2xl p-4 text-center cursor-pointer transition-all duration-200 flex flex-col items-center gap-2.5",
+                          isDragging ? `${border} ${bg} scale-[1.02]` : hasError ? "border-red-400 bg-red-50" : "border-border hover:border-primary/40 hover:bg-muted/40",
+                          "h-36 justify-center"
+                        )}
+                      >
+                        <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center", isDragging ? bg : hasError ? "bg-red-100" : "bg-muted")}>
+                          {hasError ? <AlertCircle className="h-5 w-5 text-red-500" /> : <Icon className={cn("h-5 w-5", isDragging ? color : "text-muted-foreground")} />}
+                        </div>
+                        <div>
+                          <p className={cn("text-xs font-bold", hasError ? "text-red-600" : "text-foreground")}>{title}</p>
+                          <p className="text-[10px] text-muted-foreground leading-snug mt-0.5 hidden sm:block">{hint}</p>
+                        </div>
+                        <div className={cn(
+                          "flex items-center gap-1 text-[10px] font-semibold px-2 py-1 rounded-full",
+                          hasError ? "bg-red-100 text-red-600" : "bg-muted text-muted-foreground"
+                        )}>
+                          <Plus className="h-3 w-3" />
+                          {hasError ? "Required" : "Add photo"}
+                        </div>
+                        {errors[id] && <p className="text-red-500 text-[10px]">{errors[id]}</p>}
+                      </motion.div>
                     )}
-                    <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-3">
-                      <p className="text-white text-xs font-medium truncate">{file?.name}</p>
-                    </div>
-                  </div>
-                  <CardContent className="p-4 flex items-center gap-3">
-                    <CheckCircle2 className="h-5 w-5 text-emerald-500 shrink-0" />
-                    <div>
-                      <p className="text-sm font-semibold text-foreground">Image ready for analysis</p>
-                      <p className="text-xs text-muted-foreground">
-                        {cropType ? `${cropType.charAt(0).toUpperCase() + cropType.slice(1)} · ` : ""}
-                        {file ? `${(file.size / 1024).toFixed(0)} KB` : ""}
-                      </p>
-                    </div>
-                  </CardContent>
-                </Card>
-              </motion.div>
-            )}
-          </AnimatePresence>
+                  </AnimatePresence>
+                </motion.div>
+              );
+            })}
+          </div>
+
+          {submitAttempted && !allPhotos && (
+            <motion.div
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+              className="mt-3 flex items-center gap-2 bg-red-50 border border-red-200 text-red-700 text-xs rounded-xl px-3 py-2.5"
+            >
+              <AlertCircle className="h-4 w-4 shrink-0" />
+              Please upload all 3 photos: Whole Plant, Leaf Close-up, and Soil/Root for accurate diagnosis.
+            </motion.div>
+          )}
         </div>
 
-        {/* Validation hints */}
-        {file && (!cropType || !soilType) && (
-          <motion.p
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="text-amber-600 text-xs flex items-center gap-1.5 bg-amber-50 border border-amber-200 rounded-xl px-3 py-2"
+        {/* Camera quick capture tip */}
+        <div className="flex items-start gap-2.5 bg-blue-50 border border-blue-100 rounded-xl px-3.5 py-3">
+          <Camera className="h-4 w-4 text-blue-500 shrink-0 mt-0.5" />
+          <p className="text-xs text-blue-800 leading-relaxed">
+            <strong>Mobile tip:</strong> Tapping an upload slot will open your camera directly. Take each photo type in sequence for the most accurate AI analysis. Ensure good lighting and steady hands.
+          </p>
+        </div>
+
+        {/* Validation summary */}
+        {missingFields && (
+          <motion.div
+            initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }}
+            className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 flex items-start gap-2"
           >
-            <ChevronDown className="h-3.5 w-3.5 shrink-0" />
-            Please select your crop type and soil type before analysing.
-          </motion.p>
+            <AlertCircle className="h-4 w-4 text-amber-500 mt-0.5 shrink-0" />
+            <div className="text-xs text-amber-800">
+              <p className="font-semibold mb-1">Please complete all required fields before analysing:</p>
+              <ul className="space-y-0.5 list-disc list-inside">
+                {!cropType && <li>Crop type</li>}
+                {!soilType && <li>Soil type</li>}
+                {!growthStage && <li>Growth stage</li>}
+                {!allPhotos && <li>All 3 photos ({photosUploaded}/3 uploaded)</li>}
+              </ul>
+            </div>
+          </motion.div>
         )}
 
-        {/* Analyse Button */}
+        {/* Analyse Button / Progress */}
         <AnimatePresence mode="wait">
           {analyzing ? (
             <motion.div
               key="progress"
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0 }}
-              className="space-y-3"
+              initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
             >
-              <Card className="rounded-2xl border-border/60 shadow-sm overflow-hidden">
+              <Card className="rounded-2xl border-border/60 shadow-sm">
                 <CardContent className="p-5 space-y-4">
                   <div className="flex items-center gap-3">
-                    <motion.div
-                      animate={{ rotate: 360 }}
-                      transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                    >
+                    <motion.div animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: "linear" }}>
                       <Loader2 className="h-5 w-5 text-primary" />
                     </motion.div>
                     <div className="flex-1">
-                      <motion.p
-                        key={stage}
-                        initial={{ opacity: 0, y: 4 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        className="text-sm font-semibold text-foreground"
-                      >
+                      <motion.p key={stage} initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} className="text-sm font-semibold text-foreground">
                         {STAGES[stage]}
                       </motion.p>
-                      <p className="text-xs text-muted-foreground">BHOOMI AI is working…</p>
+                      <p className="text-xs text-muted-foreground">BHOOMI AI is analysing your {photosUploaded} photos…</p>
                     </div>
                     <span className="text-sm font-bold text-primary tabular-nums">{progress}%</span>
                   </div>
-
-                  {/* Progress bar */}
                   <div className="h-2.5 bg-muted rounded-full overflow-hidden">
                     <motion.div
                       className="h-full rounded-full bg-gradient-to-r from-emerald-400 to-primary"
                       style={{ width: `${progress}%` }}
-                      transition={{ ease: "linear" }}
                     />
                   </div>
-
-                  {/* Stage dots */}
                   <div className="flex items-center justify-between">
-                    {STAGES.map((s, i) => (
-                      <div key={s} className="flex flex-col items-center gap-1">
-                        <motion.div
-                          className={cn(
-                            "w-2 h-2 rounded-full transition-colors duration-300",
-                            i <= stage ? "bg-primary" : "bg-muted"
-                          )}
-                          animate={i === stage ? { scale: [1, 1.4, 1] } : {}}
-                          transition={{ repeat: Infinity, duration: 0.8 }}
-                        />
-                      </div>
+                    {STAGES.map((_, i) => (
+                      <motion.div
+                        key={i}
+                        className={cn("w-2 h-2 rounded-full transition-colors duration-300", i <= stage ? "bg-primary" : "bg-muted")}
+                        animate={i === stage ? { scale: [1, 1.4, 1] } : {}}
+                        transition={{ repeat: Infinity, duration: 0.8 }}
+                      />
                     ))}
                   </div>
                 </CardContent>
               </Card>
             </motion.div>
           ) : (
-            <motion.div key="btn" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+            <motion.div key="btn" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="pb-4">
               <Button
                 onClick={runAnalysis}
-                disabled={!canAnalyze}
-                className="w-full h-13 rounded-xl text-base font-semibold gap-2 shadow-sm"
+                className="w-full h-13 rounded-xl text-base font-bold gap-2 shadow-sm"
                 size="lg"
               >
                 <Microscope className="h-5 w-5" />
-                Analyse with BHOOMI AI
+                Analyse with BHOOMI AI — {photosUploaded}/3 photos
               </Button>
-              {!canAnalyze && (
-                <p className="text-center text-xs text-muted-foreground mt-2">
-                  {!file ? "Upload an image to continue" : "Select crop and soil type"}
-                </p>
-              )}
+              <p className="text-center text-xs text-muted-foreground mt-2">
+                All 3 photos + crop details required · AI returns 2 possible diagnoses
+              </p>
             </motion.div>
           )}
         </AnimatePresence>

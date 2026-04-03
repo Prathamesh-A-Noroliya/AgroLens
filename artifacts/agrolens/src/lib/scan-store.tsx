@@ -1,10 +1,17 @@
 import { createContext, useContext, useState, ReactNode } from "react";
 
+export interface ScanPhoto {
+  url: string;
+  name: string;
+  type: "whole" | "leaf" | "soil";
+}
+
 export interface ScanData {
-  imageUrl: string;
-  imageName: string;
+  photos: ScanPhoto[];
   cropType: string;
   soilType: string;
+  growthStage: string;
+  fieldName: string;
 }
 
 interface ScanStoreType {
