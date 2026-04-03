@@ -9,8 +9,12 @@ import RegisterPage from "@/pages/register";
 import DashboardPage from "@/pages/dashboard";
 import ScanPage from "@/pages/scan";
 import ScanResultPage from "@/pages/scan-result";
+import PremiumRecommendationPage from "@/pages/premium-recommendation";
+import HistoryPage from "@/pages/history";
+import SubscriptionPage from "@/pages/subscription";
+import CheckoutPage from "@/pages/checkout";
 import PlaceholderPage from "@/pages/placeholder";
-import { Lightbulb, History, MessageSquare, User } from "lucide-react";
+import { MessageSquare, User, Lightbulb } from "lucide-react";
 
 const queryClient = new QueryClient();
 
@@ -28,6 +32,7 @@ function Router() {
       </Route>
       <Route path="/login" component={LoginPage} />
       <Route path="/register" component={RegisterPage} />
+
       <Route path="/dashboard">
         <ProtectedRoute component={DashboardPage} />
       </Route>
@@ -40,20 +45,23 @@ function Router() {
       <Route path="/recommendations">
         <ProtectedRoute component={() => (
           <PlaceholderPage
-            title="Smart Recommendations"
-            description="Get personalised crop care recommendations based on your scan results and local weather data."
+            title="Recommendations"
+            description="View all personalised crop care recommendations from BHOOMI AI."
             icon={Lightbulb}
           />
         )} />
       </Route>
+      <Route path="/premium-recommendation">
+        <ProtectedRoute component={PremiumRecommendationPage} />
+      </Route>
       <Route path="/history">
-        <ProtectedRoute component={() => (
-          <PlaceholderPage
-            title="Scan History"
-            description="View all your past crop scans, disease detections, and treatment records in one place."
-            icon={History}
-          />
-        )} />
+        <ProtectedRoute component={HistoryPage} />
+      </Route>
+      <Route path="/subscription">
+        <ProtectedRoute component={SubscriptionPage} />
+      </Route>
+      <Route path="/checkout">
+        <ProtectedRoute component={CheckoutPage} />
       </Route>
       <Route path="/chat">
         <ProtectedRoute component={() => (
