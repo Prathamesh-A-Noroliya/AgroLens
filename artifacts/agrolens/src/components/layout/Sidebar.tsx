@@ -9,26 +9,27 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/lib/auth";
 import { useBhoomi } from "@/lib/bhoomi-context";
+import { useLanguage } from "@/lib/language-context";
 
 interface NavItem {
   icon: React.ElementType;
-  label: string;
+  labelKey: string;
   href: string;
-  badge?: string;
+  badgeKey?: string;
 }
 
 const NAV_ITEMS: NavItem[] = [
-  { icon: LayoutDashboard, label: "Dashboard", href: "/dashboard" },
-  { icon: Camera, label: "AI Scan", href: "/scan" },
-  { icon: Lightbulb, label: "Recommendations", href: "/recommendations" },
-  { icon: History, label: "Scan History", href: "/history" },
-  { icon: MessageSquare, label: "Chat with BHOOMI", href: "__bhoomi__" },
-  { icon: User, label: "Profile", href: "/profile" },
+  { icon: LayoutDashboard, labelKey: "nav.dashboard",        href: "/dashboard" },
+  { icon: Camera,          labelKey: "nav.scan",             href: "/scan" },
+  { icon: Lightbulb,       labelKey: "nav.recommendations",  href: "/recommendations" },
+  { icon: History,         labelKey: "nav.history",          href: "/history" },
+  { icon: MessageSquare,   labelKey: "nav.bhoomi",           href: "__bhoomi__" },
+  { icon: User,            labelKey: "nav.profile",          href: "/profile" },
 ];
 
 const PAYMENT_ITEMS: NavItem[] = [
-  { icon: Star, label: "Pro Plans", href: "/subscription", badge: "Hot" },
-  { icon: CreditCard, label: "Payment & Billing", href: "/checkout" },
+  { icon: Star,       labelKey: "nav.plans",   href: "/subscription", badgeKey: "Hot" },
+  { icon: CreditCard, labelKey: "nav.billing", href: "/checkout" },
 ];
 
 interface SidebarProps {
@@ -40,6 +41,7 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
   const [location, navigate] = useLocation();
   const { logout, user } = useAuth();
   const { setOpen: setBhoomiOpen } = useBhoomi();
+  const { t } = useLanguage();
 
   const handleNav = (href: string) => {
     if (href === "__bhoomi__") {
@@ -74,10 +76,10 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
         )}
       >
         <Icon className={cn("h-4 w-4 shrink-0", active ? "text-primary-foreground" : "text-muted-foreground group-hover:text-sidebar-accent-foreground")} />
-        <span className="flex-1">{item.label}</span>
-        {item.badge && !active && (
+        <span className="flex-1">{t(item.labelKey)}</span>
+        {item.badgeKey && !active && (
           <span className="text-[9px] font-bold bg-amber-400 text-white px-1.5 py-0.5 rounded-full">
-            {item.badge}
+            {item.badgeKey}
           </span>
         )}
         {active && <div className="w-1.5 h-1.5 rounded-full bg-primary-foreground/60" />}
@@ -103,14 +105,14 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
       <nav className="flex-1 p-3 space-y-0.5 overflow-y-auto">
         {/* Main Navigation */}
         <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-widest px-3 py-2">
-          Navigation
+          {t("nav.section.navigation")}
         </p>
         {NAV_ITEMS.map((item) => <NavButton key={item.href} item={item} />)}
 
-        {/* Payment & Subscription Section */}
+        {/* Plans & Billing */}
         <div className="pt-3 mt-3 border-t border-sidebar-border">
           <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-widest px-3 py-2">
-            Plans & Billing
+            {t("nav.section.billing")}
           </p>
           {PAYMENT_ITEMS.map((item) => <NavButton key={item.href} item={item} />)}
         </div>
@@ -125,13 +127,13 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
               <div className="w-7 h-7 rounded-lg bg-primary flex items-center justify-center">
                 <Sparkles className="h-3.5 w-3.5 text-white" />
               </div>
-              <span className="text-xs font-bold text-foreground">Upgrade to Pro</span>
+              <span className="text-xs font-bold text-foreground">{t("sidebar.upgradeTo")}</span>
             </div>
             <p className="text-[11px] text-muted-foreground leading-snug">
-              Unlimited scans · BHOOMI voice · Treatment protocols
+              {t("sidebar.upgradeFeatures")}
             </p>
             <div className="mt-2 text-[11px] font-semibold text-primary group-hover:underline flex items-center gap-1">
-              View plans — from ₹199/mo →
+              {t("sidebar.viewPlans")}
             </div>
           </button>
         </div>
@@ -157,7 +159,7 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
           className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-all duration-150"
         >
           <LogOut className="h-4 w-4 shrink-0" />
-          Sign Out
+          {t("sidebar.signOut")}
         </button>
       </div>
     </div>

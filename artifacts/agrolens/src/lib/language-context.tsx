@@ -1,0 +1,588 @@
+import { createContext, useContext, useState, useCallback, type ReactNode } from "react";
+
+export type LangCode = "EN" | "HI" | "MR";
+
+/* ─────────────────────────────────────────────────────────────
+   TRANSLATION DICTIONARY
+   Keys use dot-notation: "section.subKey"
+   ───────────────────────────────────────────────────────────── */
+
+const dict: Record<LangCode, Record<string, string>> = {
+  EN: {
+    /* Header */
+    "header.tagline": "AI Crop Intelligence",
+
+    /* Sidebar — nav items */
+    "nav.section.navigation": "Navigation",
+    "nav.section.billing": "Plans & Billing",
+    "nav.dashboard": "Dashboard",
+    "nav.scan": "AI Scan",
+    "nav.recommendations": "Recommendations",
+    "nav.history": "Scan History",
+    "nav.bhoomi": "Chat with BHOOMI",
+    "nav.profile": "Profile",
+    "nav.plans": "Pro Plans",
+    "nav.billing": "Payment & Billing",
+
+    /* Sidebar — upgrade card */
+    "sidebar.upgradeTo": "Upgrade to Pro",
+    "sidebar.upgradeFeatures": "Unlimited scans · BHOOMI voice · Treatment protocols",
+    "sidebar.viewPlans": "View plans — from ₹199/mo →",
+    "sidebar.signOut": "Sign Out",
+
+    /* Auth — Login */
+    "login.title": "Welcome back",
+    "login.subtitle": "Sign in to your AgroLens account",
+    "login.email": "Email Address",
+    "login.emailPlaceholder": "farmer@example.com",
+    "login.password": "Password",
+    "login.forgotPassword": "Forgot Password?",
+    "login.signIn": "Sign In",
+    "login.tryDemo": "Try Demo Access",
+    "login.newUser": "New to AgroLens?",
+    "login.createAccount": "Create account",
+    "login.or": "or",
+
+    /* Auth — Register */
+    "register.title": "Create your account",
+    "register.subtitle": "Join AgroLens and start scanning crops",
+    "register.fullName": "Full Name",
+    "register.fullNamePlaceholder": "Ramesh Kumar",
+    "register.email": "Email Address",
+    "register.emailPlaceholder": "farmer@example.com",
+    "register.password": "Password",
+    "register.passwordPlaceholder": "Min. 6 characters",
+    "register.farmerId": "Farmer ID",
+    "register.farmerIdPlaceholder": "Optional — assigned by your Krishi Kendra",
+    "register.submit": "Create Account",
+    "register.alreadyHave": "Already have an account?",
+    "register.signIn": "Sign in",
+    "register.agreePrefix": "By creating an account, you agree to our",
+    "register.terms": "Terms of Service",
+    "register.and": "and",
+    "register.privacy": "Privacy Policy",
+
+    /* Dashboard */
+    "dashboard.welcome": "Welcome back",
+    "dashboard.quickActions": "Quick Actions",
+    "dashboard.scanCrop": "Scan Crop",
+    "dashboard.scanCropDesc": "Upload photos for AI diagnosis",
+    "dashboard.viewHistory": "View History",
+    "dashboard.viewHistoryDesc": "Past scans & results",
+    "dashboard.unlockPremium": "Unlock Premium",
+    "dashboard.unlockPremiumDesc": "Full treatment protocols",
+    "dashboard.chatBhoomi": "Chat with BHOOMI",
+    "dashboard.chatBhoomiDesc": "Ask anything about your crops",
+    "dashboard.recentScans": "Recent Scans",
+    "dashboard.fieldHealth": "Field Health Overview",
+    "dashboard.weeklyScans": "Weekly Scan Activity",
+    "dashboard.aiRecommendations": "AI Recommendations",
+    "dashboard.healthy": "Healthy",
+    "dashboard.atRisk": "At Risk",
+    "dashboard.diseased": "Diseased",
+    "dashboard.unknown": "Unknown",
+    "dashboard.today": "Today",
+    "dashboard.yesterday": "Yesterday",
+    "dashboard.viewAll": "View All",
+    "dashboard.urgent": "Urgent",
+    "dashboard.moderate": "Moderate",
+    "dashboard.info": "Info",
+
+    /* Weather widget */
+    "weather.today": "Today's Weather",
+    "weather.humidity": "Humidity",
+    "weather.wind": "Wind",
+    "weather.rain": "Rain",
+    "weather.feelsLike": "Feels like",
+    "weather.hourlyRain": "Hourly Rainfall",
+
+    /* AI Scan */
+    "scan.title": "AI Crop Scan",
+    "scan.subtitle": "Upload 3 photos for accurate diagnosis",
+    "scan.stepFields": "Field Info",
+    "scan.stepPhotos": "Photos",
+    "scan.stepAnalyse": "Analyse",
+    "scan.cropType": "Crop Type",
+    "scan.cropTypePlaceholder": "Select crop",
+    "scan.soilType": "Soil Type",
+    "scan.soilTypePlaceholder": "Select soil type",
+    "scan.growthStage": "Growth Stage",
+    "scan.growthStagePlaceholder": "Select stage",
+    "scan.fieldName": "Field Name",
+    "scan.fieldNamePlaceholder": "e.g. North Field A (optional)",
+    "scan.photoWhole": "Whole Plant",
+    "scan.photoLeaf": "Leaf Close-up",
+    "scan.photoSoil": "Soil / Root",
+    "scan.photoRequired": "Required",
+    "scan.photoHint": "Tap or drag to upload",
+    "scan.analyseButton": "Analyse Crop",
+    "scan.missingFields": "Please complete the following before scanning:",
+    "scan.processing": "Analysing your crop...",
+
+    /* Scan Result */
+    "result.primaryDiagnosis": "Primary Diagnosis",
+    "result.secondaryDiagnosis": "Secondary Possibility",
+    "result.confidence": "Confidence",
+    "result.severity": "Severity",
+    "result.cause": "Cause",
+    "result.affectedArea": "Affected Area",
+    "result.spreadRate": "Spread Rate",
+    "result.estimatedLoss": "Estimated Loss",
+    "result.treatmentWindow": "Treatment Window",
+    "result.quickFix": "Quick Fix",
+    "result.expandDetails": "Expand details",
+    "result.collapseDetails": "Collapse",
+    "result.unlockFull": "Unlock Full Recommendations",
+    "result.unlockSubtitle": "Get complete treatment protocol, fertilizer dosage, and organic alternatives",
+    "result.photosUploaded": "Photos Uploaded",
+
+    /* Recommendations */
+    "reco.title": "Premium Recommendations",
+    "reco.treatment": "Treatment Protocol",
+    "reco.fertilizer": "Fertilizer Dosage",
+    "reco.organic": "Organic Alternatives",
+    "reco.application": "Application Methods",
+    "reco.historicalData": "Historical Disease Data",
+
+    /* History */
+    "history.title": "Scan History",
+    "history.searchPlaceholder": "Search scans by crop, field, disease...",
+    "history.noResults": "No scans found",
+    "history.noResultsHint": "Try a different search term or filter",
+    "history.filterAll": "All",
+    "history.filterHigh": "High Severity",
+    "history.filterMedium": "Medium",
+    "history.filterLow": "Low / Healthy",
+    "history.totalScans": "Total Scans",
+    "history.thisMonth": "This Month",
+
+    /* Subscription */
+    "sub.title": "Choose Your Plan",
+    "sub.subtitle": "Unlock the full power of AI farming intelligence",
+    "sub.monthly": "Monthly",
+    "sub.yearly": "Yearly",
+    "sub.save": "Save 33%",
+    "sub.getStarted": "Get Started",
+    "sub.currentPlan": "Current Plan",
+    "sub.popular": "Most Popular",
+    "sub.perMonth": "/mo",
+    "sub.billedYearly": "billed yearly",
+
+    /* Checkout */
+    "checkout.title": "Complete Payment",
+    "checkout.success": "Payment Successful!",
+    "checkout.successMsg": "Your Pro subscription is now active.",
+    "checkout.payNow": "Pay Now",
+    "checkout.upi": "UPI",
+    "checkout.card": "Credit / Debit Card",
+    "checkout.wallet": "Wallet",
+
+    /* Common */
+    "common.loading": "Loading...",
+    "common.back": "Back",
+    "common.save": "Save",
+    "common.cancel": "Cancel",
+    "common.submit": "Submit",
+    "common.close": "Close",
+    "common.viewAll": "View All",
+    "common.learnMore": "Learn More",
+    "common.perMonth": "per month",
+  },
+
+  HI: {
+    /* Header */
+    "header.tagline": "AI फसल बुद्धिमत्ता",
+
+    /* Sidebar — nav items */
+    "nav.section.navigation": "नेविगेशन",
+    "nav.section.billing": "योजनाएं और बिलिंग",
+    "nav.dashboard": "डैशबोर्ड",
+    "nav.scan": "AI स्कैन",
+    "nav.recommendations": "सुझाव",
+    "nav.history": "स्कैन इतिहास",
+    "nav.bhoomi": "BHOOMI से चैट करें",
+    "nav.profile": "प्रोफ़ाइल",
+    "nav.plans": "प्रो योजनाएं",
+    "nav.billing": "भुगतान और बिलिंग",
+
+    /* Sidebar — upgrade card */
+    "sidebar.upgradeTo": "प्रो में अपग्रेड करें",
+    "sidebar.upgradeFeatures": "असीमित स्कैन · BHOOMI वॉइस · उपचार प्रोटोकॉल",
+    "sidebar.viewPlans": "योजनाएं देखें — ₹199/माह से →",
+    "sidebar.signOut": "साइन आउट",
+
+    /* Auth — Login */
+    "login.title": "वापस स्वागत है",
+    "login.subtitle": "अपने AgroLens खाते में साइन इन करें",
+    "login.email": "ईमेल पता",
+    "login.emailPlaceholder": "farmer@example.com",
+    "login.password": "पासवर्ड",
+    "login.forgotPassword": "पासवर्ड भूल गए?",
+    "login.signIn": "साइन इन करें",
+    "login.tryDemo": "डेमो एक्सेस आज़माएं",
+    "login.newUser": "AgroLens में नए हैं?",
+    "login.createAccount": "खाता बनाएं",
+    "login.or": "या",
+
+    /* Auth — Register */
+    "register.title": "अपना खाता बनाएं",
+    "register.subtitle": "AgroLens से जुड़ें और फसल स्कैन शुरू करें",
+    "register.fullName": "पूरा नाम",
+    "register.fullNamePlaceholder": "रमेश कुमार",
+    "register.email": "ईमेल पता",
+    "register.emailPlaceholder": "farmer@example.com",
+    "register.password": "पासवर्ड",
+    "register.passwordPlaceholder": "कम से कम 6 अक्षर",
+    "register.farmerId": "किसान आईडी",
+    "register.farmerIdPlaceholder": "वैकल्पिक — कृषि केंद्र द्वारा दी गई",
+    "register.submit": "खाता बनाएं",
+    "register.alreadyHave": "पहले से खाता है?",
+    "register.signIn": "साइन इन करें",
+    "register.agreePrefix": "खाता बनाकर आप हमारी",
+    "register.terms": "सेवा शर्तों",
+    "register.and": "और",
+    "register.privacy": "गोपनीयता नीति",
+
+    /* Dashboard */
+    "dashboard.welcome": "वापस स्वागत है",
+    "dashboard.quickActions": "त्वरित कार्य",
+    "dashboard.scanCrop": "फसल स्कैन करें",
+    "dashboard.scanCropDesc": "AI निदान के लिए फ़ोटो अपलोड करें",
+    "dashboard.viewHistory": "इतिहास देखें",
+    "dashboard.viewHistoryDesc": "पिछले स्कैन और परिणाम",
+    "dashboard.unlockPremium": "प्रीमियम अनलॉक करें",
+    "dashboard.unlockPremiumDesc": "पूर्ण उपचार प्रोटोकॉल",
+    "dashboard.chatBhoomi": "BHOOMI से चैट करें",
+    "dashboard.chatBhoomiDesc": "अपनी फसल के बारे में कुछ भी पूछें",
+    "dashboard.recentScans": "हाल के स्कैन",
+    "dashboard.fieldHealth": "खेत स्वास्थ्य अवलोकन",
+    "dashboard.weeklyScans": "साप्ताहिक स्कैन गतिविधि",
+    "dashboard.aiRecommendations": "AI सुझाव",
+    "dashboard.healthy": "स्वस्थ",
+    "dashboard.atRisk": "जोखिम में",
+    "dashboard.diseased": "रोगग्रस्त",
+    "dashboard.unknown": "अज्ञात",
+    "dashboard.today": "आज",
+    "dashboard.yesterday": "कल",
+    "dashboard.viewAll": "सभी देखें",
+    "dashboard.urgent": "अत्यावश्यक",
+    "dashboard.moderate": "मध्यम",
+    "dashboard.info": "जानकारी",
+
+    /* Weather widget */
+    "weather.today": "आज का मौसम",
+    "weather.humidity": "आर्द्रता",
+    "weather.wind": "हवा",
+    "weather.rain": "वर्षा",
+    "weather.feelsLike": "महसूस होता है",
+    "weather.hourlyRain": "प्रति घंटा वर्षा",
+
+    /* AI Scan */
+    "scan.title": "AI फसल स्कैन",
+    "scan.subtitle": "सटीक निदान के लिए 3 तस्वीरें अपलोड करें",
+    "scan.stepFields": "खेत की जानकारी",
+    "scan.stepPhotos": "तस्वीरें",
+    "scan.stepAnalyse": "विश्लेषण",
+    "scan.cropType": "फसल का प्रकार",
+    "scan.cropTypePlaceholder": "फसल चुनें",
+    "scan.soilType": "मिट्टी का प्रकार",
+    "scan.soilTypePlaceholder": "मिट्टी का प्रकार चुनें",
+    "scan.growthStage": "विकास चरण",
+    "scan.growthStagePlaceholder": "चरण चुनें",
+    "scan.fieldName": "खेत का नाम",
+    "scan.fieldNamePlaceholder": "जैसे उत्तरी खेत A (वैकल्पिक)",
+    "scan.photoWhole": "पूरा पौधा",
+    "scan.photoLeaf": "पत्ती क्लोज़-अप",
+    "scan.photoSoil": "मिट्टी / जड़",
+    "scan.photoRequired": "आवश्यक",
+    "scan.photoHint": "टैप करें या खींचें",
+    "scan.analyseButton": "फसल का विश्लेषण करें",
+    "scan.missingFields": "स्कैन करने से पहले निम्नलिखित पूरा करें:",
+    "scan.processing": "आपकी फसल का विश्लेषण हो रहा है...",
+
+    /* Scan Result */
+    "result.primaryDiagnosis": "प्राथमिक निदान",
+    "result.secondaryDiagnosis": "द्वितीयक संभावना",
+    "result.confidence": "आत्मविश्वास",
+    "result.severity": "गंभीरता",
+    "result.cause": "कारण",
+    "result.affectedArea": "प्रभावित क्षेत्र",
+    "result.spreadRate": "फैलाव दर",
+    "result.estimatedLoss": "अनुमानित नुकसान",
+    "result.treatmentWindow": "उपचार अवधि",
+    "result.quickFix": "त्वरित उपाय",
+    "result.expandDetails": "विस्तार देखें",
+    "result.collapseDetails": "संकुचित करें",
+    "result.unlockFull": "पूर्ण सुझाव अनलॉक करें",
+    "result.unlockSubtitle": "पूर्ण उपचार प्रोटोकॉल, उर्वरक मात्रा, और जैविक विकल्प पाएं",
+    "result.photosUploaded": "अपलोड की गई तस्वीरें",
+
+    /* Recommendations */
+    "reco.title": "प्रीमियम सुझाव",
+    "reco.treatment": "उपचार प्रोटोकॉल",
+    "reco.fertilizer": "उर्वरक मात्रा",
+    "reco.organic": "जैविक विकल्प",
+    "reco.application": "प्रयोग विधियां",
+    "reco.historicalData": "ऐतिहासिक रोग डेटा",
+
+    /* History */
+    "history.title": "स्कैन इतिहास",
+    "history.searchPlaceholder": "फसल, खेत, रोग से खोजें...",
+    "history.noResults": "कोई स्कैन नहीं मिला",
+    "history.noResultsHint": "कोई अन्य खोज शब्द या फ़िल्टर आज़माएं",
+    "history.filterAll": "सभी",
+    "history.filterHigh": "उच्च गंभीरता",
+    "history.filterMedium": "मध्यम",
+    "history.filterLow": "कम / स्वस्थ",
+    "history.totalScans": "कुल स्कैन",
+    "history.thisMonth": "इस महीने",
+
+    /* Subscription */
+    "sub.title": "अपनी योजना चुनें",
+    "sub.subtitle": "AI कृषि बुद्धिमत्ता की पूरी शक्ति अनलॉक करें",
+    "sub.monthly": "मासिक",
+    "sub.yearly": "वार्षिक",
+    "sub.save": "33% बचाएं",
+    "sub.getStarted": "शुरू करें",
+    "sub.currentPlan": "वर्तमान योजना",
+    "sub.popular": "सबसे लोकप्रिय",
+    "sub.perMonth": "/माह",
+    "sub.billedYearly": "वार्षिक बिल",
+
+    /* Checkout */
+    "checkout.title": "भुगतान पूरा करें",
+    "checkout.success": "भुगतान सफल!",
+    "checkout.successMsg": "आपकी प्रो सदस्यता अब सक्रिय है।",
+    "checkout.payNow": "अभी भुगतान करें",
+    "checkout.upi": "UPI",
+    "checkout.card": "क्रेडिट / डेबिट कार्ड",
+    "checkout.wallet": "वॉलेट",
+
+    /* Common */
+    "common.loading": "लोड हो रहा है...",
+    "common.back": "वापस",
+    "common.save": "सेव करें",
+    "common.cancel": "रद्द करें",
+    "common.submit": "जमा करें",
+    "common.close": "बंद करें",
+    "common.viewAll": "सभी देखें",
+    "common.learnMore": "और जानें",
+    "common.perMonth": "प्रति माह",
+  },
+
+  MR: {
+    /* Header */
+    "header.tagline": "AI पीक बुद्धिमत्ता",
+
+    /* Sidebar — nav items */
+    "nav.section.navigation": "नेव्हिगेशन",
+    "nav.section.billing": "योजना आणि बिलिंग",
+    "nav.dashboard": "डॅशबोर्ड",
+    "nav.scan": "AI स्कॅन",
+    "nav.recommendations": "शिफारसी",
+    "nav.history": "स्कॅन इतिहास",
+    "nav.bhoomi": "भूमीशी चॅट करा",
+    "nav.profile": "प्रोफाइल",
+    "nav.plans": "प्रो योजना",
+    "nav.billing": "पेमेंट आणि बिलिंग",
+
+    /* Sidebar — upgrade card */
+    "sidebar.upgradeTo": "प्रोमध्ये अपग्रेड करा",
+    "sidebar.upgradeFeatures": "अमर्यादित स्कॅन · BHOOMI व्हॉइस · उपचार प्रोटोकॉल",
+    "sidebar.viewPlans": "योजना पाहा — ₹199/महिना पासून →",
+    "sidebar.signOut": "साइन आउट करा",
+
+    /* Auth — Login */
+    "login.title": "परत स्वागत आहे",
+    "login.subtitle": "आपल्या AgroLens खात्यात साइन इन करा",
+    "login.email": "ईमेल पत्ता",
+    "login.emailPlaceholder": "farmer@example.com",
+    "login.password": "पासवर्ड",
+    "login.forgotPassword": "पासवर्ड विसरलात?",
+    "login.signIn": "साइन इन करा",
+    "login.tryDemo": "डेमो ऍक्सेस वापरून पाहा",
+    "login.newUser": "AgroLens साठी नवीन आहात?",
+    "login.createAccount": "खाते तयार करा",
+    "login.or": "किंवा",
+
+    /* Auth — Register */
+    "register.title": "आपले खाते तयार करा",
+    "register.subtitle": "AgroLens मध्ये सामील व्हा आणि पीक स्कॅन सुरू करा",
+    "register.fullName": "पूर्ण नाव",
+    "register.fullNamePlaceholder": "रमेश कुमार",
+    "register.email": "ईमेल पत्ता",
+    "register.emailPlaceholder": "farmer@example.com",
+    "register.password": "पासवर्ड",
+    "register.passwordPlaceholder": "किमान 6 अक्षरे",
+    "register.farmerId": "शेतकरी ID",
+    "register.farmerIdPlaceholder": "पर्यायी — कृषी केंद्राने दिलेली",
+    "register.submit": "खाते तयार करा",
+    "register.alreadyHave": "आधीच खाते आहे?",
+    "register.signIn": "साइन इन करा",
+    "register.agreePrefix": "खाते तयार करून तुम्ही आमच्या",
+    "register.terms": "सेवा अटी",
+    "register.and": "आणि",
+    "register.privacy": "गोपनीयता धोरण",
+
+    /* Dashboard */
+    "dashboard.welcome": "परत स्वागत आहे",
+    "dashboard.quickActions": "त्वरित कृती",
+    "dashboard.scanCrop": "पीक स्कॅन करा",
+    "dashboard.scanCropDesc": "AI निदानासाठी फोटो अपलोड करा",
+    "dashboard.viewHistory": "इतिहास पाहा",
+    "dashboard.viewHistoryDesc": "मागील स्कॅन आणि निकाल",
+    "dashboard.unlockPremium": "प्रीमियम अनलॉक करा",
+    "dashboard.unlockPremiumDesc": "संपूर्ण उपचार प्रोटोकॉल",
+    "dashboard.chatBhoomi": "भूमीशी चॅट करा",
+    "dashboard.chatBhoomiDesc": "तुमच्या पिकाबद्दल काहीही विचारा",
+    "dashboard.recentScans": "अलीकडील स्कॅन",
+    "dashboard.fieldHealth": "शेत आरोग्य आढावा",
+    "dashboard.weeklyScans": "साप्ताहिक स्कॅन क्रियाकलाप",
+    "dashboard.aiRecommendations": "AI शिफारसी",
+    "dashboard.healthy": "निरोगी",
+    "dashboard.atRisk": "धोक्यात",
+    "dashboard.diseased": "रोगग्रस्त",
+    "dashboard.unknown": "अज्ञात",
+    "dashboard.today": "आज",
+    "dashboard.yesterday": "काल",
+    "dashboard.viewAll": "सर्व पाहा",
+    "dashboard.urgent": "तातडीचे",
+    "dashboard.moderate": "मध्यम",
+    "dashboard.info": "माहिती",
+
+    /* Weather widget */
+    "weather.today": "आजचे हवामान",
+    "weather.humidity": "आर्द्रता",
+    "weather.wind": "वारा",
+    "weather.rain": "पाऊस",
+    "weather.feelsLike": "जाणवते",
+    "weather.hourlyRain": "तासावार पाऊस",
+
+    /* AI Scan */
+    "scan.title": "AI पीक स्कॅन",
+    "scan.subtitle": "अचूक निदानासाठी 3 फोटो अपलोड करा",
+    "scan.stepFields": "शेत माहिती",
+    "scan.stepPhotos": "फोटो",
+    "scan.stepAnalyse": "विश्लेषण",
+    "scan.cropType": "पीक प्रकार",
+    "scan.cropTypePlaceholder": "पीक निवडा",
+    "scan.soilType": "माती प्रकार",
+    "scan.soilTypePlaceholder": "माती प्रकार निवडा",
+    "scan.growthStage": "वाढीचा टप्पा",
+    "scan.growthStagePlaceholder": "टप्पा निवडा",
+    "scan.fieldName": "शेत नाव",
+    "scan.fieldNamePlaceholder": "उदा. उत्तर शेत A (पर्यायी)",
+    "scan.photoWhole": "संपूर्ण झाड",
+    "scan.photoLeaf": "पान क्लोज-अप",
+    "scan.photoSoil": "माती / मूळ",
+    "scan.photoRequired": "आवश्यक",
+    "scan.photoHint": "टॅप करा किंवा ड्रॅग करा",
+    "scan.analyseButton": "पीक विश्लेषण करा",
+    "scan.missingFields": "स्कॅन करण्यापूर्वी हे पूर्ण करा:",
+    "scan.processing": "तुमच्या पिकाचे विश्लेषण होत आहे...",
+
+    /* Scan Result */
+    "result.primaryDiagnosis": "प्राथमिक निदान",
+    "result.secondaryDiagnosis": "दुय्यम शक्यता",
+    "result.confidence": "आत्मविश्वास",
+    "result.severity": "तीव्रता",
+    "result.cause": "कारण",
+    "result.affectedArea": "प्रभावित क्षेत्र",
+    "result.spreadRate": "प्रसार दर",
+    "result.estimatedLoss": "अंदाजित नुकसान",
+    "result.treatmentWindow": "उपचार कालावधी",
+    "result.quickFix": "त्वरित उपाय",
+    "result.expandDetails": "तपशील पाहा",
+    "result.collapseDetails": "संकुचित करा",
+    "result.unlockFull": "संपूर्ण शिफारसी अनलॉक करा",
+    "result.unlockSubtitle": "संपूर्ण उपचार प्रोटोकॉल, खत मात्रा आणि सेंद्रिय पर्याय मिळवा",
+    "result.photosUploaded": "अपलोड केलेले फोटो",
+
+    /* Recommendations */
+    "reco.title": "प्रीमियम शिफारसी",
+    "reco.treatment": "उपचार प्रोटोकॉल",
+    "reco.fertilizer": "खत मात्रा",
+    "reco.organic": "सेंद्रिय पर्याय",
+    "reco.application": "वापर पद्धती",
+    "reco.historicalData": "ऐतिहासिक रोग डेटा",
+
+    /* History */
+    "history.title": "स्कॅन इतिहास",
+    "history.searchPlaceholder": "पीक, शेत, रोगाने शोधा...",
+    "history.noResults": "कोणते स्कॅन सापडले नाहीत",
+    "history.noResultsHint": "वेगळा शोध शब्द किंवा फिल्टर वापरून पाहा",
+    "history.filterAll": "सर्व",
+    "history.filterHigh": "उच्च तीव्रता",
+    "history.filterMedium": "मध्यम",
+    "history.filterLow": "कमी / निरोगी",
+    "history.totalScans": "एकूण स्कॅन",
+    "history.thisMonth": "या महिन्यात",
+
+    /* Subscription */
+    "sub.title": "आपली योजना निवडा",
+    "sub.subtitle": "AI शेती बुद्धिमत्तेची संपूर्ण शक्ती अनलॉक करा",
+    "sub.monthly": "मासिक",
+    "sub.yearly": "वार्षिक",
+    "sub.save": "33% बचत",
+    "sub.getStarted": "सुरू करा",
+    "sub.currentPlan": "सध्याची योजना",
+    "sub.popular": "सर्वात लोकप्रिय",
+    "sub.perMonth": "/महिना",
+    "sub.billedYearly": "वार्षिक बिल",
+
+    /* Checkout */
+    "checkout.title": "पेमेंट पूर्ण करा",
+    "checkout.success": "पेमेंट यशस्वी!",
+    "checkout.successMsg": "तुमची प्रो सदस्यता आता सक्रिय आहे.",
+    "checkout.payNow": "आता पेमेंट करा",
+    "checkout.upi": "UPI",
+    "checkout.card": "क्रेडिट / डेबिट कार्ड",
+    "checkout.wallet": "वॉलेट",
+
+    /* Common */
+    "common.loading": "लोड होत आहे...",
+    "common.back": "मागे",
+    "common.save": "जतन करा",
+    "common.cancel": "रद्द करा",
+    "common.submit": "सबमिट करा",
+    "common.close": "बंद करा",
+    "common.viewAll": "सर्व पाहा",
+    "common.learnMore": "अधिक जाणून घ्या",
+    "common.perMonth": "प्रति महिना",
+  },
+};
+
+/* ─────────────────────────────────────────────────────────────
+   CONTEXT
+   ───────────────────────────────────────────────────────────── */
+
+interface LanguageContextValue {
+  lang: LangCode;
+  setLang: (code: LangCode) => void;
+  t: (key: string, fallback?: string) => string;
+}
+
+const LanguageContext = createContext<LanguageContextValue | null>(null);
+
+export function LanguageProvider({ children }: { children: ReactNode }) {
+  const [lang, setLang] = useState<LangCode>("EN");
+
+  const t = useCallback(
+    (key: string, fallback?: string): string => {
+      return dict[lang][key] ?? dict["EN"][key] ?? fallback ?? key;
+    },
+    [lang]
+  );
+
+  return (
+    <LanguageContext.Provider value={{ lang, setLang, t }}>
+      {children}
+    </LanguageContext.Provider>
+  );
+}
+
+export function useLanguage(): LanguageContextValue {
+  const ctx = useContext(LanguageContext);
+  if (!ctx) throw new Error("useLanguage must be used inside <LanguageProvider>");
+  return ctx;
+}

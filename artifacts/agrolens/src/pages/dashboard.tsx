@@ -16,14 +16,15 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/lib/auth";
+import { useLanguage } from "@/lib/language-context";
 
 /* ─── Mock Data ─────────────────────────────────────── */
 
 const HEALTH_DONUT = [
-  { name: "Healthy", value: 62, color: "#22c55e" },
-  { name: "At Risk", value: 21, color: "#f59e0b" },
-  { name: "Diseased", value: 11, color: "#ef4444" },
-  { name: "Unknown", value: 6, color: "#cbd5e1" },
+  { nameKey: "dashboard.healthy",  value: 62, color: "#22c55e" },
+  { nameKey: "dashboard.atRisk",   value: 21, color: "#f59e0b" },
+  { nameKey: "dashboard.diseased", value: 11, color: "#ef4444" },
+  { nameKey: "dashboard.unknown",  value: 6,  color: "#cbd5e1" },
 ];
 
 const WEEKLY_SCANS = [
@@ -37,25 +38,25 @@ const WEEKLY_SCANS = [
 ];
 
 const SCAN_HISTORY = [
-  { crop: "Wheat", field: "Field A", result: "Rust detected", severity: "high", date: "Today, 10:24 AM" },
-  { crop: "Rice", field: "Field B", result: "Minor leaf blight", severity: "medium", date: "Yesterday" },
-  { crop: "Tomato", field: "Greenhouse", result: "All healthy", severity: "low", date: "2 days ago" },
-  { crop: "Cotton", field: "Field C", result: "Aphid infestation", severity: "high", date: "3 days ago" },
+  { crop: "Wheat", field: "Field A", result: "Rust detected", severity: "high", dateKey: "dashboard.today", dateExtra: ", 10:24 AM" },
+  { crop: "Rice",   field: "Field B", result: "Minor leaf blight", severity: "medium", dateKey: "dashboard.yesterday", dateExtra: "" },
+  { crop: "Tomato", field: "Greenhouse", result: "All healthy", severity: "low", dateKey: "", dateExtra: "2 days ago" },
+  { crop: "Cotton", field: "Field C", result: "Aphid infestation", severity: "high", dateKey: "", dateExtra: "3 days ago" },
 ];
 
 const RECOMMENDATIONS = [
-  { text: "Apply copper-based fungicide to wheat in Field A within 48 hours.", priority: "urgent" },
-  { text: "Increase irrigation for rice paddies — soil moisture below optimal.", priority: "moderate" },
-  { text: "Rotate crops in Field C next season to reduce aphid risk.", priority: "info" },
+  { text: "Apply copper-based fungicide to wheat in Field A within 48 hours.", priorityKey: "dashboard.urgent",  dot: "bg-red-500" },
+  { text: "Increase irrigation for rice paddies — soil moisture below optimal.", priorityKey: "dashboard.moderate", dot: "bg-amber-400" },
+  { text: "Rotate crops in Field C next season to reduce aphid risk.", priorityKey: "dashboard.info", dot: "bg-blue-400" },
 ];
 
 const HOURLY_RAIN = [
-  { time: "6AM", mm: 0 },
-  { time: "9AM", mm: 0 },
+  { time: "6AM",  mm: 0 },
+  { time: "9AM",  mm: 0 },
   { time: "12PM", mm: 2 },
-  { time: "3PM", mm: 5 },
-  { time: "6PM", mm: 3 },
-  { time: "9PM", mm: 1 },
+  { time: "3PM",  mm: 5 },
+  { time: "6PM",  mm: 3 },
+  { time: "9PM",  mm: 1 },
 ];
 
 /* ─── Animation Variants ────────────────────────────── */
@@ -70,33 +71,12 @@ const item = {
   show: { opacity: 1, y: 0, transition: { duration: 0.38, ease: "easeOut" } },
 };
 
-/* ─── Custom Donut Label ─────────────────────────────── */
-
-function DonutLabel({ cx, cy }: { cx: number; cy: number }) {
-  return (
-    <text x={cx} y={cy} textAnchor="middle" dominantBaseline="central">
-      <tspan x={cx} dy="-0.4em" className="fill-foreground" style={{ fontSize: 22, fontWeight: 700 }}>
-        62%
-      </tspan>
-      <tspan x={cx} dy="1.4em" style={{ fontSize: 11, fill: "#6b7280" }}>
-        Healthy
-      </tspan>
-    </text>
-  );
-}
-
 /* ─── Severity helpers ───────────────────────────────── */
 
 const severityBadge: Record<string, string> = {
-  high: "bg-red-50 text-red-600 border-red-200",
+  high:   "bg-red-50 text-red-600 border-red-200",
   medium: "bg-amber-50 text-amber-600 border-amber-200",
-  low: "bg-emerald-50 text-emerald-600 border-emerald-200",
-};
-
-const priorityDot: Record<string, string> = {
-  urgent: "bg-red-500",
-  moderate: "bg-amber-400",
-  info: "bg-blue-400",
+  low:    "bg-emerald-50 text-emerald-600 border-emerald-200",
 };
 
 /* ─── Component ──────────────────────────────────────── */
@@ -104,14 +84,8 @@ const priorityDot: Record<string, string> = {
 export default function DashboardPage() {
   const { user } = useAuth();
   const [, navigate] = useLocation();
+  const { t } = useLanguage();
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
-
-  const greeting = () => {
-    const h = new Date().getHours();
-    if (h < 12) return "Good Morning";
-    if (h < 17) return "Good Afternoon";
-    return "Good Evening";
-  };
 
   const today = new Date().toLocaleDateString("en-IN", {
     weekday: "long", day: "numeric", month: "long",
@@ -128,7 +102,6 @@ export default function DashboardPage() {
         {/* ── Welcome Banner ───────────────────────────── */}
         <motion.div variants={item}>
           <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-emerald-500 via-primary to-emerald-700 p-6 text-white shadow-md">
-            {/* Decorative circles */}
             <div className="absolute -top-8 -right-8 w-40 h-40 rounded-full bg-white/10 pointer-events-none" />
             <div className="absolute -bottom-12 right-20 w-56 h-56 rounded-full bg-white/5 pointer-events-none" />
             <div className="absolute top-4 right-4 opacity-20 pointer-events-none">
@@ -139,7 +112,7 @@ export default function DashboardPage() {
               <div>
                 <p className="text-emerald-100 text-sm font-medium mb-1">{today}</p>
                 <h1 className="text-2xl sm:text-3xl font-bold leading-tight">
-                  Welcome back, {user?.fullName.split(" ")[0]}!
+                  {t("dashboard.welcome")}, {user?.fullName.split(" ")[0]}!
                 </h1>
                 <p className="text-emerald-100 text-sm mt-1.5">
                   Your farm is being monitored. Here's today's overview.
@@ -159,12 +132,11 @@ export default function DashboardPage() {
               </div>
             </div>
 
-            {/* Stat pills */}
             <div className="relative z-10 mt-5 flex items-center gap-3 flex-wrap">
               {[
-                { icon: Camera, label: "24 Scans", bg: "bg-white/15" },
+                { icon: Camera,        label: "24 Scans",        bg: "bg-white/15" },
                 { icon: AlertTriangle, label: "3 Active Issues", bg: "bg-red-400/30" },
-                { icon: TrendingUp, label: "87% Health", bg: "bg-white/15" },
+                { icon: TrendingUp,    label: "87% Health",      bg: "bg-white/15" },
               ].map(({ icon: Icon, label, bg }) => (
                 <div key={label} className={`flex items-center gap-1.5 ${bg} rounded-full px-3 py-1 text-xs font-medium text-white`}>
                   <Icon className="h-3.5 w-3.5" />
@@ -177,7 +149,9 @@ export default function DashboardPage() {
 
         {/* ── Quick Actions ────────────────────────────── */}
         <motion.div variants={item}>
-          <h2 className="text-xs font-semibold text-muted-foreground uppercase tracking-widest mb-3">Quick Actions</h2>
+          <h2 className="text-xs font-semibold text-muted-foreground uppercase tracking-widest mb-3">
+            {t("dashboard.quickActions")}
+          </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {/* Scan Crop */}
             <motion.button
@@ -194,10 +168,10 @@ export default function DashboardPage() {
                 <div className="w-11 h-11 rounded-xl bg-white/20 flex items-center justify-center mb-4">
                   <Camera className="h-6 w-6 text-white" />
                 </div>
-                <p className="text-white font-bold text-lg leading-tight">Scan Crop</p>
-                <p className="text-blue-100 text-sm mt-1">Use AI camera to detect diseases instantly</p>
+                <p className="text-white font-bold text-lg leading-tight">{t("dashboard.scanCrop")}</p>
+                <p className="text-blue-100 text-sm mt-1">{t("dashboard.scanCropDesc")}</p>
                 <div className="mt-4 flex items-center gap-1 text-white/80 text-xs font-medium">
-                  Start scanning <ArrowRight className="h-3.5 w-3.5" />
+                  {t("dashboard.scanCrop")} <ArrowRight className="h-3.5 w-3.5" />
                 </div>
               </div>
             </motion.button>
@@ -217,10 +191,10 @@ export default function DashboardPage() {
                 <div className="w-11 h-11 rounded-xl bg-white/20 flex items-center justify-center mb-4">
                   <CloudUpload className="h-6 w-6 text-white" />
                 </div>
-                <p className="text-white font-bold text-lg leading-tight">Upload Image</p>
-                <p className="text-violet-100 text-sm mt-1">Upload a photo from your gallery for analysis</p>
+                <p className="text-white font-bold text-lg leading-tight">{t("dashboard.viewHistory")}</p>
+                <p className="text-violet-100 text-sm mt-1">{t("dashboard.viewHistoryDesc")}</p>
                 <div className="mt-4 flex items-center gap-1 text-white/80 text-xs font-medium">
-                  Upload now <ArrowRight className="h-3.5 w-3.5" />
+                  {t("dashboard.viewHistory")} <ArrowRight className="h-3.5 w-3.5" />
                 </div>
               </div>
             </motion.button>
@@ -235,18 +209,18 @@ export default function DashboardPage() {
             <CardHeader className="pb-2 pt-5 px-5">
               <div className="flex items-center justify-between">
                 <CardTitle className="text-sm font-semibold text-foreground flex items-center gap-2">
-                  <History className="h-4 w-4 text-primary" /> Scan History
+                  <History className="h-4 w-4 text-primary" /> {t("nav.history")}
                 </CardTitle>
                 <Button variant="ghost" size="sm" className="h-7 text-xs text-primary px-2" onClick={() => navigate("/history")}>
-                  View all
+                  {t("dashboard.viewAll")}
                 </Button>
               </div>
             </CardHeader>
             <CardContent className="px-5 pb-5 space-y-2">
               {[
-                { label: "Total Scans", value: "24", icon: Camera, color: "text-blue-500" },
+                { label: "Total Scans", value: "24", icon: Camera,        color: "text-blue-500" },
                 { label: "Issues Found", value: "3", icon: AlertTriangle, color: "text-red-500" },
-                { label: "Resolved", value: "21", icon: CheckCircle2, color: "text-emerald-500" },
+                { label: "Resolved",    value: "21", icon: CheckCircle2,  color: "text-emerald-500" },
               ].map(({ label, value, icon: Icon, color }) => (
                 <div key={label} className="flex items-center justify-between py-1.5 border-b border-border/40 last:border-0">
                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -318,7 +292,7 @@ export default function DashboardPage() {
             <CardHeader className="pb-2 pt-5 px-5">
               <div className="flex items-center justify-between">
                 <CardTitle className="text-sm font-semibold text-foreground flex items-center gap-2">
-                  <Sparkles className="h-4 w-4 text-primary" /> AI Insights
+                  <Sparkles className="h-4 w-4 text-primary" /> {t("dashboard.aiRecommendations")}
                 </CardTitle>
                 <Badge className="text-[10px] bg-primary/10 text-primary border-primary/20 font-medium">
                   {RECOMMENDATIONS.length} new
@@ -334,7 +308,7 @@ export default function DashboardPage() {
                   transition={{ delay: 0.5 + i * 0.1 }}
                   className="flex gap-2.5 bg-muted/50 rounded-xl p-3"
                 >
-                  <div className={`w-2 h-2 rounded-full shrink-0 mt-1.5 ${priorityDot[rec.priority]}`} />
+                  <div className={`w-2 h-2 rounded-full shrink-0 mt-1.5 ${rec.dot}`} />
                   <p className="text-xs text-foreground leading-relaxed">{rec.text}</p>
                 </motion.div>
               ))}
@@ -344,7 +318,7 @@ export default function DashboardPage() {
                 className="w-full text-primary text-xs mt-1"
                 onClick={() => navigate("/recommendations")}
               >
-                View all recommendations <ArrowRight className="h-3.5 w-3.5 ml-1" />
+                {t("dashboard.viewAll")} <ArrowRight className="h-3.5 w-3.5 ml-1" />
               </Button>
             </CardContent>
           </Card>
@@ -358,7 +332,7 @@ export default function DashboardPage() {
             <CardHeader className="pb-0 pt-5 px-5">
               <div className="flex items-center justify-between">
                 <CardTitle className="text-sm font-semibold text-foreground flex items-center gap-2">
-                  <TrendingUp className="h-4 w-4 text-primary" /> Crop Health Overview
+                  <TrendingUp className="h-4 w-4 text-primary" /> {t("dashboard.fieldHealth")}
                 </CardTitle>
                 <span className="text-xs text-muted-foreground">Last 30 days</span>
               </div>
@@ -369,7 +343,7 @@ export default function DashboardPage() {
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
                       <Pie
-                        data={HEALTH_DONUT}
+                        data={HEALTH_DONUT.map((d) => ({ ...d, name: t(d.nameKey) }))}
                         cx="50%"
                         cy="50%"
                         innerRadius="60%"
@@ -382,7 +356,7 @@ export default function DashboardPage() {
                       >
                         {HEALTH_DONUT.map((entry, index) => (
                           <Cell
-                            key={entry.name}
+                            key={entry.nameKey}
                             fill={entry.color}
                             opacity={activeIndex === null || activeIndex === index ? 1 : 0.5}
                             strokeWidth={activeIndex === index ? 2 : 0}
@@ -400,7 +374,7 @@ export default function DashboardPage() {
                 <div className="flex-1 space-y-2.5 w-full">
                   {HEALTH_DONUT.map((entry, i) => (
                     <motion.div
-                      key={entry.name}
+                      key={entry.nameKey}
                       initial={{ opacity: 0, x: 10 }}
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ delay: 0.4 + i * 0.08 }}
@@ -410,7 +384,7 @@ export default function DashboardPage() {
                     >
                       <div className="flex items-center gap-2 min-w-0">
                         <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: entry.color }} />
-                        <span className="text-sm text-muted-foreground truncate">{entry.name}</span>
+                        <span className="text-sm text-muted-foreground truncate">{t(entry.nameKey)}</span>
                       </div>
                       <div className="flex items-center gap-2 shrink-0">
                         <div className="w-20 h-1.5 bg-muted rounded-full overflow-hidden">
@@ -434,7 +408,7 @@ export default function DashboardPage() {
 
               {/* Weekly scan bar chart */}
               <div className="mt-4 pt-4 border-t border-border/60">
-                <p className="text-xs font-medium text-muted-foreground mb-3">Weekly Scan Activity</p>
+                <p className="text-xs font-medium text-muted-foreground mb-3">{t("dashboard.weeklyScans")}</p>
                 <div className="h-20">
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={WEEKLY_SCANS} barSize={10}>
@@ -458,13 +432,12 @@ export default function DashboardPage() {
             <CardHeader className="pb-0 pt-5 px-5">
               <div className="flex items-center justify-between">
                 <CardTitle className="text-sm font-semibold text-foreground flex items-center gap-2">
-                  <Sun className="h-4 w-4 text-amber-500" /> Weather Widget
+                  <Sun className="h-4 w-4 text-amber-500" /> {t("weather.today")}
                 </CardTitle>
                 <span className="text-xs text-muted-foreground">{user?.state}</span>
               </div>
             </CardHeader>
             <CardContent className="px-5 pb-5 space-y-4">
-              {/* Current condition */}
               <div className="flex items-center justify-between mt-2">
                 <div className="flex items-center gap-4">
                   <div className="relative">
@@ -477,30 +450,28 @@ export default function DashboardPage() {
                   </div>
                 </div>
                 <div className="text-right">
-                  <p className="text-xs text-muted-foreground">Feels like</p>
+                  <p className="text-xs text-muted-foreground">{t("weather.feelsLike")}</p>
                   <p className="text-lg font-bold text-foreground">31°C</p>
                 </div>
               </div>
 
-              {/* Stat pills */}
               <div className="grid grid-cols-3 gap-2">
                 {[
-                  { icon: Droplets, label: "Humidity", value: "62%", color: "text-blue-500" },
-                  { icon: Wind, label: "Wind", value: "12 km/h", color: "text-slate-500" },
-                  { icon: Thermometer, label: "UV Index", value: "7 High", color: "text-orange-500" },
-                ].map(({ icon: Icon, label, value, color }) => (
-                  <div key={label} className="bg-muted/60 rounded-xl p-2.5 text-center">
+                  { icon: Droplets,    labelKey: "weather.humidity", value: "62%",     color: "text-blue-500" },
+                  { icon: Wind,        labelKey: "weather.wind",     value: "12 km/h", color: "text-slate-500" },
+                  { icon: Thermometer, labelKey: "weather.rain",     value: "7 High",  color: "text-orange-500" },
+                ].map(({ icon: Icon, labelKey, value, color }) => (
+                  <div key={labelKey} className="bg-muted/60 rounded-xl p-2.5 text-center">
                     <Icon className={`h-4 w-4 mx-auto mb-1 ${color}`} />
                     <p className="text-xs font-semibold text-foreground">{value}</p>
-                    <p className="text-[10px] text-muted-foreground">{label}</p>
+                    <p className="text-[10px] text-muted-foreground">{t(labelKey)}</p>
                   </div>
                 ))}
               </div>
 
-              {/* Rainfall prediction chart */}
               <div>
                 <div className="flex items-center justify-between mb-2">
-                  <p className="text-xs font-medium text-muted-foreground">Rainfall Prediction (today)</p>
+                  <p className="text-xs font-medium text-muted-foreground">{t("weather.hourlyRain")}</p>
                   <div className="flex items-center gap-1 text-xs text-blue-600 font-medium">
                     <CloudRain className="h-3 w-3" />
                     11 mm expected
@@ -514,7 +485,7 @@ export default function DashboardPage() {
                       <YAxis hide />
                       <Tooltip
                         contentStyle={{ borderRadius: 10, border: "1px solid #e5e7eb", fontSize: 11 }}
-                        formatter={(v: number) => [`${v} mm`, "Rain"]}
+                        formatter={(v: number) => [`${v} mm`, t("weather.rain")]}
                       />
                       <Bar dataKey="mm" fill="#60a5fa" radius={[4, 4, 0, 0]} />
                     </BarChart>
@@ -522,7 +493,6 @@ export default function DashboardPage() {
                 </div>
               </div>
 
-              {/* Advisory */}
               <div className="flex items-start gap-2 bg-amber-50 border border-amber-200 rounded-xl p-3">
                 <AlertTriangle className="h-4 w-4 text-amber-500 shrink-0 mt-0.5" />
                 <p className="text-xs text-amber-800 leading-relaxed">
@@ -539,10 +509,10 @@ export default function DashboardPage() {
             <CardHeader className="pt-5 px-5 pb-3">
               <div className="flex items-center justify-between">
                 <CardTitle className="text-sm font-semibold text-foreground flex items-center gap-2">
-                  <Bell className="h-4 w-4 text-primary" /> Recent Crop Alerts
+                  <Bell className="h-4 w-4 text-primary" /> {t("dashboard.recentScans")}
                 </CardTitle>
                 <Button variant="ghost" size="sm" className="h-7 text-xs text-primary px-2" onClick={() => navigate("/history")}>
-                  View all
+                  {t("dashboard.viewAll")}
                 </Button>
               </div>
             </CardHeader>
@@ -557,7 +527,7 @@ export default function DashboardPage() {
                     className="flex items-center gap-4 px-5 py-3 hover:bg-muted/40 transition-colors cursor-pointer group"
                   >
                     <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
-                      <Leaf className="h-4.5 w-4.5 text-primary" />
+                      <Leaf className="h-4 w-4 text-primary" />
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
@@ -570,7 +540,9 @@ export default function DashboardPage() {
                       <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border ${severityBadge[entry.severity]} capitalize`}>
                         {entry.severity}
                       </span>
-                      <span className="text-[10px] text-muted-foreground">{entry.date}</span>
+                      <span className="text-[10px] text-muted-foreground">
+                        {entry.dateKey ? t(entry.dateKey) + entry.dateExtra : entry.dateExtra}
+                      </span>
                     </div>
                   </motion.div>
                 ))}

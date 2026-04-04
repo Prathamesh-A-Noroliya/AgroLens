@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/lib/auth";
+import { useLanguage } from "@/lib/language-context";
 
 const loginSchema = z.object({
   email: z.string().email("Enter a valid email address"),
@@ -20,6 +21,7 @@ type LoginForm = z.infer<typeof loginSchema>;
 export default function LoginPage() {
   const [, navigate] = useLocation();
   const { login, loginDemo } = useAuth();
+  const { t } = useLanguage();
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [demoLoading, setDemoLoading] = useState(false);
@@ -55,12 +57,10 @@ export default function LoginPage() {
         transition={{ duration: 0.5 }}
         className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-emerald-600 via-primary to-emerald-800 relative overflow-hidden flex-col items-center justify-center p-12 text-white"
       >
-        {/* Background decoration */}
         <div className="absolute inset-0 overflow-hidden">
           <div className="absolute -top-20 -left-20 w-80 h-80 rounded-full bg-white/5" />
           <div className="absolute -bottom-16 -right-16 w-72 h-72 rounded-full bg-white/5" />
           <div className="absolute top-1/3 right-10 w-32 h-32 rounded-full bg-white/5" />
-          {/* Decorative grid pattern */}
           <svg className="absolute inset-0 w-full h-full opacity-10" xmlns="http://www.w3.org/2000/svg">
             <defs>
               <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
@@ -72,7 +72,6 @@ export default function LoginPage() {
         </div>
 
         <div className="relative z-10 max-w-md text-center">
-          {/* Logo */}
           <motion.div
             initial={{ scale: 0.8, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
@@ -84,11 +83,10 @@ export default function LoginPage() {
             </div>
             <div className="text-left">
               <div className="text-2xl font-bold tracking-wide">AgroLens</div>
-              <div className="text-xs text-white/70 font-medium">AI Crop Intelligence</div>
+              <div className="text-xs text-white/70 font-medium">{t("header.tagline")}</div>
             </div>
           </motion.div>
 
-          {/* Farmer illustration placeholder */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -155,24 +153,24 @@ export default function LoginPage() {
             </div>
             <div>
               <div className="font-bold text-foreground">AgroLens</div>
-              <div className="text-xs text-muted-foreground">AI Crop Intelligence</div>
+              <div className="text-xs text-muted-foreground">{t("header.tagline")}</div>
             </div>
           </div>
 
           <div className="mb-8">
-            <h2 className="text-2xl font-bold text-foreground mb-1">Welcome back</h2>
-            <p className="text-muted-foreground text-sm">Sign in to your AgroLens account</p>
+            <h2 className="text-2xl font-bold text-foreground mb-1">{t("login.title")}</h2>
+            <p className="text-muted-foreground text-sm">{t("login.subtitle")}</p>
           </div>
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
             <div className="space-y-1.5">
-              <Label htmlFor="email" className="text-sm font-medium">Email Address</Label>
+              <Label htmlFor="email" className="text-sm font-medium">{t("login.email")}</Label>
               <div className="relative">
                 <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
                 <Input
                   id="email"
                   type="email"
-                  placeholder="farmer@example.com"
+                  placeholder={t("login.emailPlaceholder")}
                   className="pl-10 h-12 rounded-xl"
                   {...register("email")}
                 />
@@ -184,13 +182,13 @@ export default function LoginPage() {
 
             <div className="space-y-1.5">
               <div className="flex items-center justify-between">
-                <Label htmlFor="password" className="text-sm font-medium">Password</Label>
+                <Label htmlFor="password" className="text-sm font-medium">{t("login.password")}</Label>
                 <button
                   type="button"
                   className="text-xs text-primary hover:underline font-medium"
                   onClick={() => {}}
                 >
-                  Forgot Password?
+                  {t("login.forgotPassword")}
                 </button>
               </div>
               <div className="relative">
@@ -229,14 +227,14 @@ export default function LoginPage() {
                 />
               ) : (
                 <>
-                  Sign In <ArrowRight className="h-4 w-4" />
+                  {t("login.signIn")} <ArrowRight className="h-4 w-4" />
                 </>
               )}
             </Button>
 
             <div className="flex items-center gap-3 my-2">
               <div className="flex-1 h-px bg-border" />
-              <span className="text-xs text-muted-foreground">or</span>
+              <span className="text-xs text-muted-foreground">{t("login.or")}</span>
               <div className="flex-1 h-px bg-border" />
             </div>
 
@@ -256,19 +254,19 @@ export default function LoginPage() {
               ) : (
                 <>
                   <Zap className="h-4 w-4" />
-                  Try Demo Access
+                  {t("login.tryDemo")}
                 </>
               )}
             </Button>
           </form>
 
           <p className="text-center text-sm text-muted-foreground mt-6">
-            New to AgroLens?{" "}
+            {t("login.newUser")}{" "}
             <button
               onClick={() => navigate("/register")}
               className="text-primary font-semibold hover:underline"
             >
-              Create account
+              {t("login.createAccount")}
             </button>
           </p>
         </div>
