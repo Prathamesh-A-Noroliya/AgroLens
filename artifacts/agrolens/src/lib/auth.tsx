@@ -9,14 +9,16 @@ export interface User {
   cropType: string;
   soilType: string;
   farmerId: string;
+  isPremium: boolean;
 }
 
 interface AuthContextType {
   user: User | null;
   login: (email: string, password: string) => Promise<void>;
   loginDemo: () => void;
-  register: (data: Omit<User, "id" | "farmerId"> & { password: string }) => Promise<string>;
+  register: (data: Omit<User, "id" | "farmerId" | "isPremium"> & { password: string }) => Promise<string>;
   logout: () => void;
+  togglePremium: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -42,6 +44,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       cropType: "wheat",
       soilType: "loamy",
       farmerId: "AGR24-XY7K2",
+      isPremium: false,
     });
   };
 
@@ -55,21 +58,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       cropType: "rice",
       soilType: "alluvial",
       farmerId: "AGR24-DEMO1",
+      isPremium: false,
     });
   };
 
-  const register = async (data: Omit<User, "id" | "farmerId"> & { password: string }): Promise<string> => {
+  const register = async (
+    data: Omit<User, "id" | "farmerId" | "isPremium"> & { password: string }
+  ): Promise<string> => {
     await new Promise((r) => setTimeout(r, 1000));
     const farmerId = generateFarmerId();
     const { password: _pw, ...rest } = data;
-    setUser({ id: Date.now().toString(), farmerId, ...rest });
+    setUser({ id: Date.now().toString(), farmerId, isPremium: false, ...rest });
     return farmerId;
   };
 
   const logout = () => setUser(null);
 
+  const togglePremium = () => {
+    setUser((prev) => prev ? { ...prev, isPremium: !prev.isPremium } : prev);
+  };
+
   return (
-    <AuthContext.Provider value={{ user, login, loginDemo, register, logout }}>
+    <AuthContext.Provider value={{ user, login, loginDemo, register, logout, togglePremium }}>
       {children}
     </AuthContext.Provider>
   );

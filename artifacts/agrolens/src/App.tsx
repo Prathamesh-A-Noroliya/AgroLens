@@ -15,7 +15,8 @@ import HistoryPage from "@/pages/history";
 import SubscriptionPage from "@/pages/subscription";
 import CheckoutPage from "@/pages/checkout";
 import PlaceholderPage from "@/pages/placeholder";
-import { MessageSquare, User, Lightbulb } from "lucide-react";
+import ProfilePage from "@/pages/profile";
+import { MessageSquare, Lightbulb } from "lucide-react";
 
 const queryClient = new QueryClient();
 
@@ -74,13 +75,7 @@ function Router() {
         )} />
       </Route>
       <Route path="/profile">
-        <ProtectedRoute component={() => (
-          <PlaceholderPage
-            title="Farmer Profile"
-            description="Manage your farmer profile, farm details, notification preferences, and account settings."
-            icon={User}
-          />
-        )} />
+        <ProtectedRoute component={ProfilePage} />
       </Route>
       <Route>
         <Redirect to="/login" />
