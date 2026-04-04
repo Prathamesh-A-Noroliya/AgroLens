@@ -4,6 +4,16 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/* ─────────────────────────────────────────────────────────
+   THEME TOKEN MAP
+   Colour roles:
+     primary  = Soft Green  (growth / nature / CTAs)
+     secondary = Soft Blue  (tech / trust / UI tints)
+     background = very subtle blue-white  (not stark white)
+     muted    = gentle blue-grey surfaces
+     sidebar  = crisp blue-white panel
+   ───────────────────────────────────────────────────────── */
+
 @theme inline {
   --color-background: hsl(var(--background));
   --color-foreground: hsl(var(--foreground));
@@ -66,74 +76,93 @@
   --radius-xl: calc(var(--radius) + 4px);
 }
 
-/* LIGHT MODE */
+/* ─── LIGHT MODE ──────────────────────────────────────── */
 :root {
-  --button-outline: rgba(0,0,0, .10);
-  --badge-outline: rgba(0,0,0, .05);
-  --opaque-button-border-intensity: -8;
-  --elevate-1: rgba(0,0,0, .03);
-  --elevate-2: rgba(0,0,0, .08);
+  --button-outline: rgba(0, 0, 0, 0.09);
+  --badge-outline: rgba(0, 0, 0, 0.04);
+  --opaque-button-border-intensity: -7;
+  --elevate-1: rgba(0, 0, 0, 0.025);
+  --elevate-2: rgba(0, 0, 0, 0.06);
 
-  --background: 0 0% 98%;
-  --foreground: 150 15% 12%;
-  --border: 140 20% 88%;
-  --card: 0 0% 100%;
-  --card-foreground: 150 15% 12%;
-  --card-border: 140 20% 88%;
+  /* ── Page Background: very subtle blue-white (NOT stark white) */
+  --background: 214 45% 97.5%;
 
-  --sidebar: 140 30% 97%;
-  --sidebar-foreground: 150 15% 15%;
-  --sidebar-border: 140 25% 88%;
-  --sidebar-primary: 142 65% 38%;
-  --sidebar-primary-foreground: 0 0% 100%;
-  --sidebar-accent: 142 30% 93%;
-  --sidebar-accent-foreground: 142 50% 25%;
-  --sidebar-ring: 142 65% 38%;
+  /* ── Text */
+  --foreground: 220 20% 13%;
 
-  --popover: 0 0% 100%;
-  --popover-foreground: 150 15% 12%;
-  --popover-border: 140 20% 88%;
+  /* ── Borders & inputs with a gentle blue cast */
+  --border: 213 30% 87%;
+  --input: 213 30% 87%;
+  --ring: 142 60% 38%;
 
-  --primary: 142 65% 38%;
+  /* ── Cards: pure white with the tiniest cool hint */
+  --card: 210 20% 99.5%;
+  --card-foreground: 220 20% 13%;
+  --card-border: 213 25% 89%;
+
+  /* ── Popovers */
+  --popover: 210 20% 99.5%;
+  --popover-foreground: 220 20% 13%;
+  --popover-border: 213 25% 89%;
+
+  /* ── Primary: Soft Green (growth / nature / CTAs) */
+  --primary: 142 60% 36%;
   --primary-foreground: 0 0% 100%;
 
-  --secondary: 210 60% 92%;
-  --secondary-foreground: 210 50% 25%;
+  /* ── Secondary: Soft Blue (tech / trust / chips / backgrounds) */
+  --secondary: 210 65% 91%;
+  --secondary-foreground: 215 55% 22%;
 
-  --muted: 140 15% 94%;
-  --muted-foreground: 150 10% 45%;
+  /* ── Muted: blue-grey surfaces — used for hover states, tags */
+  --muted: 213 28% 94%;
+  --muted-foreground: 215 14% 44%;
 
-  --accent: 142 40% 90%;
-  --accent-foreground: 142 60% 20%;
+  /* ── Accent: green hover tint (sidebar items, icon rings) */
+  --accent: 142 35% 91%;
+  --accent-foreground: 142 55% 22%;
 
-  --destructive: 0 72% 51%;
+  /* ── Destructive */
+  --destructive: 0 70% 50%;
   --destructive-foreground: 0 0% 100%;
 
-  --input: 140 20% 88%;
-  --ring: 142 65% 38%;
+  /* ── Sidebar: crisp blue-white — slightly deeper than page */
+  --sidebar: 213 38% 96.5%;
+  --sidebar-foreground: 220 18% 16%;
+  --sidebar-border: 213 28% 87%;
+  --sidebar-primary: 142 60% 36%;
+  --sidebar-primary-foreground: 0 0% 100%;
+  --sidebar-accent: 213 38% 92%;
+  --sidebar-accent-foreground: 215 45% 24%;
+  --sidebar-ring: 142 60% 36%;
 
-  --chart-1: 142 65% 38%;
-  --chart-2: 210 70% 55%;
-  --chart-3: 37 90% 55%;
-  --chart-4: 280 60% 55%;
-  --chart-5: 10 80% 55%;
+  /* ── Charts */
+  --chart-1: 142 60% 36%;
+  --chart-2: 210 70% 52%;
+  --chart-3: 37 88% 53%;
+  --chart-4: 280 58% 53%;
+  --chart-5: 10 78% 53%;
 
-  --app-font-sans: 'Inter', sans-serif;
-  --app-font-serif: Georgia, serif;
-  --app-font-mono: Menlo, monospace;
-  --radius: .625rem;
+  /* ── Typography */
+  --app-font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --app-font-serif: Georgia, 'Times New Roman', serif;
+  --app-font-mono: 'JetBrains Mono', Menlo, monospace;
 
-  --shadow-2xs: 0px 1px 2px 0px rgba(0,0,0,0.04);
-  --shadow-xs: 0px 1px 3px 0px rgba(0,0,0,0.06);
-  --shadow-sm: 0px 2px 4px 0px rgba(0,0,0,0.06), 0px 1px 2px -1px rgba(0,0,0,0.04);
-  --shadow: 0px 4px 8px 0px rgba(0,0,0,0.08), 0px 2px 4px -1px rgba(0,0,0,0.04);
-  --shadow-md: 0px 6px 14px 0px rgba(0,0,0,0.10), 0px 2px 6px -1px rgba(0,0,0,0.06);
-  --shadow-lg: 0px 10px 24px 0px rgba(0,0,0,0.12), 0px 4px 8px -1px rgba(0,0,0,0.06);
-  --shadow-xl: 0px 20px 40px 0px rgba(0,0,0,0.14), 0px 8px 16px -1px rgba(0,0,0,0.08);
-  --shadow-2xl: 0px 32px 64px 0px rgba(0,0,0,0.18);
-  --tracking-normal: 0em;
+  /* ── Geometry */
+  --radius: 0.65rem;
   --spacing: 0.25rem;
+  --tracking-normal: -0.01em;
 
+  /* ── Shadows — carry a slight blue-cool tint */
+  --shadow-2xs: 0px 1px 2px 0px rgba(30, 64, 120, 0.04);
+  --shadow-xs:  0px 1px 3px 0px rgba(30, 64, 120, 0.06);
+  --shadow-sm:  0px 2px 5px 0px rgba(30, 64, 120, 0.07), 0px 1px 2px -1px rgba(30, 64, 120, 0.04);
+  --shadow:     0px 4px 10px 0px rgba(30, 64, 120, 0.08), 0px 2px 4px -2px rgba(30, 64, 120, 0.05);
+  --shadow-md:  0px 6px 16px 0px rgba(30, 64, 120, 0.10), 0px 3px 6px -2px rgba(30, 64, 120, 0.06);
+  --shadow-lg:  0px 10px 28px 0px rgba(30, 64, 120, 0.12), 0px 4px 10px -2px rgba(30, 64, 120, 0.07);
+  --shadow-xl:  0px 20px 44px 0px rgba(30, 64, 120, 0.14), 0px 8px 18px -4px rgba(30, 64, 120, 0.08);
+  --shadow-2xl: 0px 32px 64px 0px rgba(30, 64, 120, 0.18);
+
+  /* ── Computed border tokens */
   --sidebar-primary-border: hsl(var(--sidebar-primary));
   --sidebar-primary-border: hsl(from hsl(var(--sidebar-primary)) h s calc(l + var(--opaque-button-border-intensity)) / alpha);
   --sidebar-accent-border: hsl(var(--sidebar-accent));
@@ -150,26 +179,93 @@
   --destructive-border: hsl(from hsl(var(--destructive)) h s calc(l + var(--opaque-button-border-intensity)) / alpha);
 }
 
+/* ─── BASE LAYER ──────────────────────────────────────── */
 @layer base {
   * {
     @apply border-border;
+    box-sizing: border-box;
   }
+
+  html {
+    -webkit-text-size-adjust: 100%;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
   body {
     @apply font-sans antialiased bg-background text-foreground;
+    /* Soft blue radial gradient at the top of the page for depth */
+    background-image:
+      radial-gradient(ellipse 80% 40% at 50% -10%,
+        hsl(210 60% 94% / 0.55) 0%,
+        transparent 70%);
+    background-attachment: fixed;
+    letter-spacing: var(--tracking-normal);
+    line-height: 1.6;
+  }
+
+  /* Refined focus ring — green primary with blue tint shadow */
+  :focus-visible {
+    outline: 2px solid hsl(var(--ring));
+    outline-offset: 2px;
+    border-radius: var(--radius-sm);
+  }
+
+  /* Thin, blue-tinted scrollbars */
+  ::-webkit-scrollbar {
+    width: 5px;
+    height: 5px;
+  }
+  ::-webkit-scrollbar-track {
+    background: hsl(var(--muted));
+    border-radius: 999px;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: hsl(213 30% 78%);
+    border-radius: 999px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: hsl(213 30% 68%);
+  }
+
+  /* Selection color: green primary */
+  ::selection {
+    background: hsl(142 60% 36% / 0.18);
+    color: hsl(142 60% 22%);
+  }
+
+  /* Headings — tighter tracking for premium feel */
+  h1, h2, h3, h4, h5, h6 {
+    letter-spacing: -0.025em;
+    font-weight: 700;
+  }
+
+  /* Placeholder text */
+  ::placeholder {
+    color: hsl(var(--muted-foreground));
+    opacity: 0.7;
   }
 }
 
+/* ─── UTILITY LAYER ───────────────────────────────────── */
 @layer utilities {
+  /* Search input */
   input[type="search"]::-webkit-search-cancel-button {
     @apply hidden;
   }
+
+  /* Content-editable placeholder */
   [contenteditable][data-placeholder]:empty::before {
     content: attr(data-placeholder);
     color: hsl(var(--muted-foreground));
     pointer-events: none;
   }
+
+  /* ── Elevation hover system (unchanged, kept for Shadcn compat) */
   .no-default-hover-elevate {}
   .no-default-active-elevate {}
+
   .toggle-elevate::before,
   .toggle-elevate-2::before {
     content: "";
@@ -185,6 +281,7 @@
   .border.toggle-elevate::before {
     inset: -1px;
   }
+
   .hover-elevate:not(.no-default-hover-elevate),
   .active-elevate:not(.no-default-active-elevate),
   .hover-elevate-2:not(.no-default-hover-elevate),
@@ -192,6 +289,7 @@
     position: relative;
     z-index: 0;
   }
+
   .hover-elevate:not(.no-default-hover-elevate)::after,
   .active-elevate:not(.no-default-active-elevate)::after,
   .hover-elevate-2:not(.no-default-hover-elevate)::after,
@@ -203,19 +301,81 @@
     border-radius: inherit;
     z-index: 999;
   }
+
   .hover-elevate:hover:not(.no-default-hover-elevate)::after,
   .active-elevate:active:not(.no-default-active-elevate)::after {
     background-color: var(--elevate-1);
   }
+
   .hover-elevate-2:hover:not(.no-default-hover-elevate)::after,
   .active-elevate-2:active:not(.no-default-active-elevate)::after {
     background-color: var(--elevate-2);
   }
+
   .border.hover-elevate:not(.no-hover-interaction-elevate)::after,
   .border.active-elevate:not(.no-active-interaction-elevate)::after,
   .border.hover-elevate-2:not(.no-hover-interaction-elevate)::after,
-  .border.active-elevate-2:not(.no-active-interaction-elevate)::after,
-  .border.hover-elevate:not(.no-hover-interaction-elevate)::after {
+  .border.active-elevate-2:not(.no-active-interaction-elevate)::after {
     inset: -1px;
+  }
+
+  /* ── Glass card style — used for premium badges */
+  .glass-card {
+    background: hsl(210 40% 99% / 0.72);
+    backdrop-filter: blur(12px) saturate(140%);
+    border: 1px solid hsl(213 30% 88% / 0.8);
+  }
+
+  /* ── Soft blue tint utility (extra light page backgrounds) */
+  .bg-page {
+    background-color: hsl(var(--background));
+  }
+
+  /* ── Blue gradient strip — for hero sections */
+  .bg-blue-glow {
+    background: linear-gradient(135deg,
+      hsl(210 65% 94%) 0%,
+      hsl(214 50% 97%) 100%);
+  }
+
+  /* ── Green gradient strip — for CTAs and primary actions */
+  .bg-green-glow {
+    background: linear-gradient(135deg,
+      hsl(142 55% 42%) 0%,
+      hsl(150 60% 34%) 100%);
+  }
+
+  /* ── Premium shimmer animation — for loading skeletons */
+  @keyframes shimmer {
+    0%   { background-position: -400px 0; }
+    100% { background-position: 400px 0; }
+  }
+  .shimmer {
+    background: linear-gradient(
+      90deg,
+      hsl(var(--muted)) 0%,
+      hsl(213 40% 90%) 50%,
+      hsl(var(--muted)) 100%
+    );
+    background-size: 800px 100%;
+    animation: shimmer 1.5s infinite linear;
+  }
+
+  /* ── Subtle green pulse — for live status indicators */
+  @keyframes pulse-green {
+    0%, 100% { box-shadow: 0 0 0 0 hsl(142 60% 36% / 0.4); }
+    50%       { box-shadow: 0 0 0 6px hsl(142 60% 36% / 0); }
+  }
+  .pulse-green {
+    animation: pulse-green 2s ease-in-out infinite;
+  }
+
+  /* ── Blue soft glow — for trust/secondary elements */
+  @keyframes pulse-blue {
+    0%, 100% { box-shadow: 0 0 0 0 hsl(210 70% 52% / 0.35); }
+    50%       { box-shadow: 0 0 0 6px hsl(210 70% 52% / 0); }
+  }
+  .pulse-blue {
+    animation: pulse-blue 2.5s ease-in-out infinite;
   }
 }
