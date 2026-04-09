@@ -4,7 +4,10 @@ import { useLocation } from "wouter";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Leaf, Mail, Lock, Eye, EyeOff, Zap, ArrowRight, Sprout } from "lucide-react";
+import {
+  Leaf, Mail, Lock, Eye, EyeOff, ArrowRight, Sprout,
+  CheckCircle2, XCircle,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -12,23 +15,34 @@ import { useAuth } from "@/lib/auth";
 import { useLanguage } from "@/lib/language-context";
 
 const loginSchema = z.object({
-  email: z.string().email("Enter a valid email address"),
+  email: z
+    .string()
+    .min(1, "Email address is required")
+    .email("Enter a valid email address (e.g. name@example.com)"),
   password: z.string().min(6, "Password must be at least 6 characters"),
 });
 
 type LoginForm = z.infer<typeof loginSchema>;
 
+function isValidEmail(email: string): boolean {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+}
+
 export default function LoginPage() {
   const [, navigate] = useLocation();
-  const { login, loginDemo } = useAuth();
+  const { login } = useAuth();
   const { t } = useLanguage();
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [demoLoading, setDemoLoading] = useState(false);
+  const [emailValue, setEmailValue] = useState("");
 
   const { register, handleSubmit, formState: { errors } } = useForm<LoginForm>({
     resolver: zodResolver(loginSchema),
   });
+
+  const emailTouched = emailValue.length > 0;
+  const emailValid = isValidEmail(emailValue);
+  const emailInvalid = emailTouched && !emailValid;
 
   const onSubmit = async (data: LoginForm) => {
     setLoading(true);
@@ -40,27 +54,28 @@ export default function LoginPage() {
     }
   };
 
-  const handleDemo = () => {
-    setDemoLoading(true);
-    setTimeout(() => {
-      loginDemo();
-      navigate("/dashboard");
-    }, 600);
-  };
-
   return (
     <div className="min-h-screen flex flex-col lg:flex-row">
-      {/* Hero Left Panel */}
+      {/* Hero Left Panel — green → sky blue gradient */}
       <motion.div
         initial={{ opacity: 0, x: -30 }}
         animate={{ opacity: 1, x: 0 }}
         transition={{ duration: 0.5 }}
-        className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-emerald-600 via-primary to-emerald-800 relative overflow-hidden flex-col items-center justify-center p-12 text-white"
+        className="hidden lg:flex lg:w-1/2 relative overflow-hidden flex-col items-center justify-center p-12 text-white"
+        style={{
+          background: "linear-gradient(135deg, hsl(142 65% 34%) 0%, hsl(170 60% 38%) 40%, hsl(200 72% 44%) 100%)",
+        }}
       >
+        {/* Decorative elements */}
         <div className="absolute inset-0 overflow-hidden">
           <div className="absolute -top-20 -left-20 w-80 h-80 rounded-full bg-white/5" />
           <div className="absolute -bottom-16 -right-16 w-72 h-72 rounded-full bg-white/5" />
           <div className="absolute top-1/3 right-10 w-32 h-32 rounded-full bg-white/5" />
+          {/* Gradient orb */}
+          <div
+            className="absolute top-1/4 left-1/2 -translate-x-1/2 w-96 h-96 rounded-full opacity-20"
+            style={{ background: "radial-gradient(circle, hsl(190 80% 70%) 0%, transparent 70%)" }}
+          />
           <svg className="absolute inset-0 w-full h-full opacity-10" xmlns="http://www.w3.org/2000/svg">
             <defs>
               <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
@@ -143,16 +158,23 @@ export default function LoginPage() {
         initial={{ opacity: 0, x: 30 }}
         animate={{ opacity: 1, x: 0 }}
         transition={{ duration: 0.5 }}
-        className="flex-1 flex items-center justify-center p-6 sm:p-10 bg-background"
+        className="flex-1 flex items-center justify-center p-6 sm:p-10"
+        style={{
+          background: "linear-gradient(160deg, hsl(142 30% 97.5%) 0%, hsl(200 45% 97%) 100%)",
+        }}
       >
         <div className="w-full max-w-md">
           {/* Mobile logo */}
           <div className="flex items-center gap-2 mb-8 lg:hidden">
-            <div className="w-9 h-9 rounded-xl bg-primary flex items-center justify-center">
+            <div className="w-9 h-9 rounded-xl gradient-primary flex items-center justify-center">
               <Leaf className="h-5 w-5 text-white" />
             </div>
             <div>
-              <div className="font-bold text-foreground">AgroLens</div>
+              <div
+                className="font-bold bg-gradient-to-r from-emerald-700 to-sky-600 bg-clip-text text-transparent"
+              >
+                AgroLens
+              </div>
               <div className="text-xs text-muted-foreground">{t("header.tagline")}</div>
             </div>
           </div>
@@ -163,6 +185,7 @@ export default function LoginPage() {
           </div>
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+            {/* Email with real-time validation indicator */}
             <div className="space-y-1.5">
               <Label htmlFor="email" className="text-sm font-medium">{t("login.email")}</Label>
               <div className="relative">
@@ -171,15 +194,41 @@ export default function LoginPage() {
                   id="email"
                   type="email"
                   placeholder={t("login.emailPlaceholder")}
-                  className="pl-10 h-12 rounded-xl"
-                  {...register("email")}
+                  className={`pl-10 pr-10 h-12 rounded-xl transition-all ${
+                    emailInvalid
+                      ? "border-destructive/70 focus-visible:ring-destructive/30"
+                      : emailTouched && emailValid
+                        ? "border-emerald-400/70 focus-visible:ring-emerald-300/30"
+                        : ""
+                  }`}
+                  {...register("email", {
+                    onChange: (e) => setEmailValue(e.target.value),
+                  })}
                 />
+                {/* Real-time validation icon */}
+                {emailTouched && (
+                  <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
+                    {emailValid ? (
+                      <CheckCircle2 className="h-4 w-4 text-emerald-500" />
+                    ) : (
+                      <XCircle className="h-4 w-4 text-destructive/70" />
+                    )}
+                  </div>
+                )}
               </div>
               {errors.email && (
-                <p className="text-destructive text-xs mt-1">{errors.email.message}</p>
+                <p className="text-destructive text-xs mt-1 flex items-center gap-1">
+                  <XCircle className="h-3 w-3 shrink-0" /> {errors.email.message}
+                </p>
+              )}
+              {emailTouched && emailValid && !errors.email && (
+                <p className="text-emerald-600 text-xs mt-1 flex items-center gap-1">
+                  <CheckCircle2 className="h-3 w-3 shrink-0" /> Valid email address
+                </p>
               )}
             </div>
 
+            {/* Password */}
             <div className="space-y-1.5">
               <div className="flex items-center justify-between">
                 <Label htmlFor="password" className="text-sm font-medium">{t("login.password")}</Label>
@@ -214,14 +263,16 @@ export default function LoginPage() {
               )}
             </div>
 
+            {/* Sign In Button — gradient */}
             <Button
               type="submit"
-              className="w-full h-12 rounded-xl text-sm font-semibold gap-2"
+              className="w-full h-12 rounded-xl text-sm font-semibold gap-2 border-0"
+              style={{ background: "linear-gradient(135deg, hsl(142 62% 36%) 0%, hsl(196 70% 44%) 100%)" }}
               disabled={loading}
             >
               {loading ? (
                 <motion.div
-                  className="w-4 h-4 border-2 border-primary-foreground/40 border-t-primary-foreground rounded-full"
+                  className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full"
                   animate={{ rotate: 360 }}
                   transition={{ duration: 0.8, repeat: Infinity, ease: "linear" }}
                 />
@@ -232,39 +283,18 @@ export default function LoginPage() {
               )}
             </Button>
 
-            <div className="flex items-center gap-3 my-2">
-              <div className="flex-1 h-px bg-border" />
-              <span className="text-xs text-muted-foreground">{t("login.or")}</span>
-              <div className="flex-1 h-px bg-border" />
+            {/* Email requirement notice */}
+            <div className="flex items-center gap-2 text-xs text-muted-foreground bg-emerald-50/80 border border-emerald-100 rounded-xl px-3 py-2.5">
+              <Mail className="h-3.5 w-3.5 text-emerald-500 shrink-0" />
+              A valid email address is required to access AgroLens.
             </div>
-
-            <Button
-              type="button"
-              variant="outline"
-              className="w-full h-12 rounded-xl text-sm font-semibold gap-2 border-primary/30 text-primary hover:bg-primary/5"
-              onClick={handleDemo}
-              disabled={demoLoading}
-            >
-              {demoLoading ? (
-                <motion.div
-                  className="w-4 h-4 border-2 border-primary/40 border-t-primary rounded-full"
-                  animate={{ rotate: 360 }}
-                  transition={{ duration: 0.8, repeat: Infinity, ease: "linear" }}
-                />
-              ) : (
-                <>
-                  <Zap className="h-4 w-4" />
-                  {t("login.tryDemo")}
-                </>
-              )}
-            </Button>
           </form>
 
           <p className="text-center text-sm text-muted-foreground mt-6">
             {t("login.newUser")}{" "}
             <button
               onClick={() => navigate("/register")}
-              className="text-primary font-semibold hover:underline"
+              className="font-semibold hover:underline bg-gradient-to-r from-emerald-600 to-sky-600 bg-clip-text text-transparent"
             >
               {t("login.createAccount")}
             </button>

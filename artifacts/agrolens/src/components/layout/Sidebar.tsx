@@ -71,31 +71,32 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
         className={cn(
           "w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 group text-left",
           active
-            ? "bg-primary text-primary-foreground shadow-sm"
-            : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+            ? "text-white shadow-sm"
+            : "text-sidebar-foreground hover:bg-white/60 hover:text-sidebar-accent-foreground"
         )}
+        style={active ? { background: "linear-gradient(135deg, hsl(142 62% 36%) 0%, hsl(196 70% 44%) 100%)" } : {}}
       >
-        <Icon className={cn("h-4 w-4 shrink-0", active ? "text-primary-foreground" : "text-muted-foreground group-hover:text-sidebar-accent-foreground")} />
+        <Icon className={cn("h-4 w-4 shrink-0", active ? "text-white" : "text-muted-foreground group-hover:text-sidebar-accent-foreground")} />
         <span className="flex-1">{t(item.labelKey)}</span>
         {item.badgeKey && !active && (
           <span className="text-[9px] font-bold bg-amber-400 text-white px-1.5 py-0.5 rounded-full">
             {item.badgeKey}
           </span>
         )}
-        {active && <div className="w-1.5 h-1.5 rounded-full bg-primary-foreground/60" />}
+        {active && <div className="w-1.5 h-1.5 rounded-full bg-white/60" />}
       </button>
     );
   };
 
   const sidebarContent = (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col h-full sidebar-gradient-bg">
       {/* Mobile header */}
-      <div className="flex items-center justify-between p-4 border-b border-sidebar-border lg:hidden">
+      <div className="flex items-center justify-between p-4 border-b border-white/50 lg:hidden">
         <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-xl bg-primary flex items-center justify-center">
+          <div className="w-8 h-8 rounded-xl flex items-center justify-center gradient-primary">
             <Leaf className="h-4 w-4 text-white" />
           </div>
-          <span className="font-bold text-sm">AgroLens</span>
+          <span className="font-bold text-sm bg-gradient-to-r from-emerald-700 to-sky-600 bg-clip-text text-transparent">AgroLens</span>
         </div>
         <Button variant="ghost" size="icon" onClick={onClose}>
           <X className="h-4 w-4" />
@@ -110,7 +111,7 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
         {NAV_ITEMS.map((item) => <NavButton key={item.href} item={item} />)}
 
         {/* Plans & Billing */}
-        <div className="pt-3 mt-3 border-t border-sidebar-border">
+        <div className="pt-3 mt-3 border-t border-white/50">
           <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-widest px-3 py-2">
             {t("nav.section.billing")}
           </p>
@@ -121,10 +122,11 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
         <div className="mt-3 mx-1">
           <button
             onClick={() => handleNav("/subscription")}
-            className="w-full bg-gradient-to-br from-primary/10 to-emerald-50 border border-primary/20 rounded-xl p-3 text-left hover:border-primary/40 transition-all group"
+            className="w-full rounded-xl p-3 text-left hover:opacity-90 transition-all group border border-white/60"
+            style={{ background: "linear-gradient(135deg, hsl(142 45% 93%) 0%, hsl(196 55% 92%) 100%)" }}
           >
             <div className="flex items-center gap-2 mb-2">
-              <div className="w-7 h-7 rounded-lg bg-primary flex items-center justify-center">
+              <div className="w-7 h-7 rounded-lg flex items-center justify-center gradient-primary">
                 <Sparkles className="h-3.5 w-3.5 text-white" />
               </div>
               <span className="text-xs font-bold text-foreground">{t("sidebar.upgradeTo")}</span>
@@ -132,7 +134,7 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
             <p className="text-[11px] text-muted-foreground leading-snug">
               {t("sidebar.upgradeFeatures")}
             </p>
-            <div className="mt-2 text-[11px] font-semibold text-primary group-hover:underline flex items-center gap-1">
+            <div className="mt-2 text-[11px] font-semibold flex items-center gap-1 bg-gradient-to-r from-emerald-600 to-sky-600 bg-clip-text text-transparent">
               {t("sidebar.viewPlans")}
             </div>
           </button>
@@ -140,11 +142,11 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
       </nav>
 
       {/* User info + logout */}
-      <div className="p-3 border-t border-sidebar-border space-y-2">
+      <div className="p-3 border-t border-white/50 space-y-2">
         {user && (
-          <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-muted/50">
-            <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center shrink-0">
-              <span className="text-primary font-bold text-xs">
+          <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-white/50 border border-white/60">
+            <div className="w-8 h-8 rounded-full flex items-center justify-center shrink-0 gradient-primary">
+              <span className="text-white font-bold text-xs">
                 {user.fullName.charAt(0).toUpperCase()}
               </span>
             </div>
@@ -156,7 +158,7 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
         )}
         <button
           onClick={handleLogout}
-          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-all duration-150"
+          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-muted-foreground hover:bg-red-50 hover:text-destructive transition-all duration-150"
         >
           <LogOut className="h-4 w-4 shrink-0" />
           {t("sidebar.signOut")}
@@ -183,14 +185,14 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
           <motion.aside
             initial={{ x: -288 }} animate={{ x: 0 }} exit={{ x: -288 }}
             transition={{ type: "spring", stiffness: 300, damping: 30 }}
-            className="fixed top-0 left-0 h-full w-72 z-50 bg-sidebar border-r border-sidebar-border shadow-xl lg:hidden"
+            className="fixed top-0 left-0 h-full w-72 z-50 border-r border-white/40 shadow-xl lg:hidden overflow-hidden"
           >
             {sidebarContent}
           </motion.aside>
         )}
       </AnimatePresence>
 
-      <aside className="hidden lg:flex flex-col fixed top-16 left-0 h-[calc(100vh-64px)] w-64 z-30 bg-sidebar border-r border-sidebar-border">
+      <aside className="hidden lg:flex flex-col fixed top-16 left-0 h-[calc(100vh-64px)] w-64 z-30 border-r border-white/40 overflow-hidden">
         {sidebarContent}
       </aside>
     </>

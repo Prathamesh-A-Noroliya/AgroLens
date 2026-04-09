@@ -28,7 +28,13 @@ export default function Header({ onMenuToggle, sidebarOpen }: HeaderProps) {
   const currentLang = LANGUAGES.find((l) => l.code === lang) ?? LANGUAGES[0];
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 bg-white/90 backdrop-blur-md border-b border-border h-16 flex items-center px-4 gap-3">
+    <header
+      className="fixed top-0 left-0 right-0 z-50 h-16 flex items-center px-4 gap-3 border-b border-white/50"
+      style={{
+        background: "linear-gradient(90deg, hsl(142 45% 96%) 0%, hsl(170 40% 95.5%) 40%, hsl(205 50% 95%) 100%)",
+        backdropFilter: "blur(16px)",
+      }}
+    >
       {/* Mobile hamburger */}
       <Button
         variant="ghost"
@@ -47,20 +53,30 @@ export default function Header({ onMenuToggle, sidebarOpen }: HeaderProps) {
 
       {/* Logo */}
       <div className="flex items-center gap-2 flex-1 min-w-0">
-        <div className="flex items-center justify-center w-8 h-8 rounded-xl bg-primary">
-          <Leaf className="h-4 w-4 text-primary-foreground" />
+        <div
+          className="flex items-center justify-center w-8 h-8 rounded-xl gradient-primary"
+        >
+          <Leaf className="h-4 w-4 text-white" />
         </div>
         <div className="hidden sm:flex flex-col leading-tight">
-          <span className="text-sm font-bold text-foreground tracking-wide">AgroLens</span>
+          <span
+            className="text-sm font-bold tracking-wide bg-gradient-to-r from-emerald-700 to-sky-600 bg-clip-text text-transparent"
+          >
+            AgroLens
+          </span>
           <span className="text-[10px] text-muted-foreground leading-none">{t("header.tagline")}</span>
         </div>
       </div>
 
       <div className="flex items-center gap-2">
-        {/* Language toggle — fully wired to context */}
+        {/* Language toggle */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="outline" size="sm" className="gap-1.5 text-xs font-medium min-w-[72px]">
+            <Button
+              variant="outline"
+              size="sm"
+              className="gap-1.5 text-xs font-medium min-w-[72px] bg-white/70 border-white/60 hover:bg-white/90"
+            >
               <Globe className="h-3.5 w-3.5 text-muted-foreground" />
               <span>{currentLang.code}</span>
               <ChevronDown className="h-3 w-3 text-muted-foreground" />
@@ -87,7 +103,9 @@ export default function Header({ onMenuToggle, sidebarOpen }: HeaderProps) {
         {/* User avatar */}
         {user && (
           <div className="flex items-center gap-2 ml-1">
-            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary/70 to-primary flex items-center justify-center text-white text-xs font-semibold shadow-sm">
+            <div
+              className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-semibold shadow-sm gradient-primary"
+            >
               {user.fullName.charAt(0).toUpperCase()}
             </div>
             <div className="hidden md:flex flex-col leading-tight">
