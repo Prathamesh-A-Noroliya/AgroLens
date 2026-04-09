@@ -2,70 +2,88 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useLocation } from "wouter";
 import {
-  Mic, X, Bot, Send, MicOff, Volume2,
-  Leaf, ChevronDown,
+  Mic, X, Bot, Send, MicOff, Leaf, ChevronDown,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useBhoomi } from "@/lib/bhoomi-context";
+import { useLanguage, type LangCode } from "@/lib/language-context";
 
-/* ─── BHOOMI Auto-Responder ──────────────────────────── */
+/* ─── Types ──────────────────────────────────────────── */
 
 type BhoomiMessage = { id: number; from: "user" | "bhoomi"; text: string; time: string };
 
 const now = () => new Date().toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" });
 
+/* ─── Language → BCP-47 tag for Speech Recognition ──── */
+
+const SPEECH_LANG: Record<LangCode, string> = {
+  EN: "en-IN",
+  HI: "hi-IN",
+  MR: "mr-IN",
+};
+
+/* ─── BHOOMI Responses (multilingual keywords) ───────── */
+
 const BHOOMI_RESPONSES: Array<{ keywords: string[]; reply: string }> = [
   {
-    keywords: ["hello", "hi", "namaste", "namaskar", "hey"],
+    keywords: ["hello", "hi", "namaste", "namaskar", "hey", "नमस्ते", "नमस्कार", "हॅलो"],
     reply: "Namaste! 🌿 I am BHOOMI, your AI farming assistant. I can help you with crop diseases, fertilizer schedules, weather advice, and market prices. What would you like to know today?",
   },
   {
-    keywords: ["disease", "infection", "blight", "rust", "fungus", "mould", "mold", "spot", "lesion"],
+    keywords: ["disease", "infection", "blight", "rust", "fungus", "mould", "mold", "spot", "lesion", "बीमारी", "रोग", "कीट", "बुरशी", "डाग", "रोगराई"],
     reply: "For disease identification, upload clear photos of the affected leaves and stems via the AI Scan page. I'll analyse the images and provide a detailed diagnosis with treatment recommendations within seconds. Should I take you there?",
   },
   {
-    keywords: ["scan", "photo", "upload", "image", "camera"],
+    keywords: ["scan", "photo", "upload", "image", "camera", "स्कैन", "तस्वीर", "फ़ोटो", "स्कॅन", "फोटो"],
     reply: "The AI Scan feature lets you upload 3 photos — a whole plant view, a leaf close-up, and a soil/root shot. This gives me the most accurate diagnosis. Tap 'AI Scan' in the sidebar to begin.",
   },
   {
-    keywords: ["wheat", "roti", "gehu", "gehun"],
+    keywords: ["wheat", "roti", "gehu", "gehun", "गेहूं", "गेहूँ", "ज्वारी", "गहू"],
     reply: "Wheat is currently in high risk for Yellow Leaf Rust in Maharashtra and Punjab. I recommend applying Propiconazole 25% EC at 1 ml/litre water as a preventive spray this week. Sow resistant varieties like HD-2967 or WH-542 next season.",
   },
   {
-    keywords: ["rice", "paddy", "dhan", "chawal"],
+    keywords: ["rice", "paddy", "dhan", "chawal", "धान", "चावल", "तांदूळ", "भात"],
     reply: "For rice, Blast Disease and Bacterial Leaf Blight are most common this season. Maintain optimum water levels (5 cm standing water) and apply Tricyclazole 75% WP at 0.6 g/litre if blast symptoms appear on flag leaves.",
   },
   {
-    keywords: ["tomato", "tamatar", "tamater"],
+    keywords: ["tomato", "tamatar", "tamater", "टमाटर", "टोमॅटो"],
     reply: "Tomato Early Blight is widespread this season. Start a preventive spray programme with Mancozeb 75% WP at 2 g/litre every 10 days. Ensure adequate spacing (60×45 cm) for air circulation.",
   },
   {
-    keywords: ["fertilizer", "fertiliser", "urea", "dap", "nitrogen", "npk", "nutrient", "khad"],
+    keywords: ["fertilizer", "fertiliser", "urea", "dap", "nitrogen", "npk", "nutrient", "khad", "खाद", "उर्वरक", "नाइट्रोजन", "खत", "रासायनिक"],
     reply: "For most kharif crops, the recommended base dose is 20 kg Nitrogen + 40 kg P₂O₅ + 20 kg K₂O per acre. Apply 50% N as basal dose and the remainder at 30 DAS. I can generate a crop-specific schedule if you tell me your crop type!",
   },
   {
-    keywords: ["water", "irrigation", "drip", "paani", "pani"],
+    keywords: ["water", "irrigation", "drip", "paani", "pani", "सिंचाई", "पानी", "सिंचन", "पाणी"],
     reply: "Smart irrigation tip: Most cereal crops need 400–600 mm water per season. Install soil moisture sensors or use the thumb test — press soil 6 inches deep; if it crumbles, it's time to irrigate. Drip irrigation saves 40–60% water compared to flood.",
   },
   {
-    keywords: ["weather", "rain", "monsoon", "temperature", "mausam"],
+    keywords: ["weather", "rain", "monsoon", "temperature", "mausam", "मौसम", "बारिश", "तापमान", "हवामान", "पाऊस"],
     reply: "Today's forecast for your region: 28°C, partly cloudy with 65% humidity. Light rainfall expected around 3 PM. Avoid pesticide application before rain. Optimal spray window: 6–9 AM tomorrow morning when wind speed is low.",
   },
   {
-    keywords: ["price", "market", "mandi", "rate", "sell", "bazaar"],
+    keywords: ["price", "market", "mandi", "rate", "sell", "bazaar", "मंडी", "बाजार", "भाव", "किंमत"],
     reply: "Current mandi prices (today): Wheat ₹2,150/quintal, Rice ₹1,980/quintal, Cotton ₹6,200/quintal, Tomato ₹850/quintal. Prices are 8% higher than last month. Best markets: Azadpur (Delhi), Vashi (Mumbai), Koyambedu (Chennai).",
   },
   {
-    keywords: ["organic", "natural", "bio", "neem", "jeev", "jaivik"],
+    keywords: ["organic", "natural", "bio", "neem", "jeev", "jaivik", "जैविक", "नीम", "सेंद्रिय", "प्राकृतिक"],
     reply: "Great choice going organic! Neem oil (5 ml/litre) is excellent for controlling aphids, whiteflies, and fungal diseases. Trichoderma viride (4 g/litre) is a powerful soil biocontrol agent. Both are available at your nearest KVK centre.",
   },
   {
-    keywords: ["subscription", "premium", "plan", "upgrade", "pro", "payment", "pay"],
-    reply: "AgroLens Pro gives you unlimited AI scans, full treatment protocols, BHOOMI voice assistant, and market alerts — all for just ₹199/month (yearly plan). Shall I take you to the subscription page?",
+    keywords: ["subscription", "premium", "plan", "upgrade", "pro", "payment", "pay", "सदस्यता", "प्रीमियम", "सदस्यत्व"],
+    reply: "AgroLens Pro gives you unlimited AI scans, full treatment protocols, BHOOMI voice assistant, and market alerts — all for just ₹79/month (₹849/year). Shall I take you to the subscription page?",
   },
   {
-    keywords: ["help", "kya", "what", "how", "kaise", "batao", "bata"],
+    keywords: ["help", "kya", "what", "how", "kaise", "batao", "bata", "मदद", "कैसे", "क्या", "मदत", "कसे"],
     reply: "I can help you with: 🌾 Crop disease diagnosis · 💊 Treatment & fertilizer plans · 🌧 Weather advisories · 💹 Market prices · 🌿 Organic alternatives · 🗓 Crop calendars. Just type your question or use the mic to speak in any language!",
+  },
+  {
+    keywords: ["cotton", "kapas", "कपास", "कापूस"],
+    reply: "Cotton Leaf Curl Virus is the biggest threat this season — transmitted by whiteflies. Apply Imidacloprid 17.8% SL to control whitefly populations. Avoid excessive nitrogen as it encourages pest growth.",
+  },
+  {
+    keywords: ["soil", "mitti", "bhumi", "जमीन", "मिट्टी", "माती"],
+    reply: "Soil health is the foundation of good yield! Conduct a soil test every 2 years. For most crops, target pH 6.0–7.5. Add organic matter (FYM 5 tons/acre) annually to improve water retention and microbial activity.",
   },
 ];
 
@@ -88,19 +106,19 @@ function getBhoomiReply(text: string): string {
 /* ─── Voice Command Navigation ───────────────────────── */
 
 const VOICE_NAV: Array<{ keywords: string[]; path: string; label: string }> = [
-  { keywords: ["dashboard", "home", "main"], path: "/dashboard", label: "Dashboard" },
-  { keywords: ["scan", "scan crop", "detect", "camera", "photo"], path: "/scan", label: "AI Scan" },
-  { keywords: ["history", "past scans", "previous"], path: "/history", label: "Scan History" },
-  { keywords: ["recommendation", "advice", "suggest", "tips"], path: "/recommendations", label: "Recommendations" },
-  { keywords: ["subscription", "premium", "upgrade", "plan", "pricing"], path: "/subscription", label: "Subscription" },
-  { keywords: ["payment", "pay", "checkout", "buy"], path: "/checkout", label: "Checkout" },
-  { keywords: ["profile", "account", "settings", "my profile"], path: "/profile", label: "Profile" },
+  { keywords: ["dashboard", "home", "main", "होम", "डैशबोर्ड"], path: "/dashboard", label: "Dashboard" },
+  { keywords: ["scan", "scan crop", "detect", "camera", "photo", "स्कैन", "स्कॅन"], path: "/scan", label: "AI Scan" },
+  { keywords: ["history", "past scans", "previous", "इतिहास"], path: "/history", label: "Scan History" },
+  { keywords: ["recommendation", "advice", "suggest", "tips", "सुझाव", "शिफारस"], path: "/recommendations", label: "Recommendations" },
+  { keywords: ["subscription", "premium", "upgrade", "plan", "pricing", "सदस्यता", "सदस्यत्व"], path: "/subscription", label: "Subscription" },
+  { keywords: ["payment", "pay", "checkout", "buy", "भुगतान", "पेमेंट"], path: "/checkout", label: "Checkout" },
+  { keywords: ["profile", "account", "settings", "my profile", "प्रोफाइल", "प्रोफ़ाइल"], path: "/profile", label: "Profile" },
   { keywords: ["premium recommendation", "full recommendation", "treatment plan"], path: "/premium-recommendation", label: "Premium Plan" },
 ];
 
 function detectNavCommand(transcript: string): { path: string; label: string } | null {
   const lower = transcript.toLowerCase();
-  const goPattern = /(?:go to|open|show|navigate to|take me to|visit)\s+(.+)/i;
+  const goPattern = /(?:go to|open|show|navigate to|take me to|visit|जाओ|खोलो|दाखवा)\s+(.+)/i;
   const match = goPattern.exec(lower) ?? null;
   const searchText = match ? match[1] : lower;
   for (const cmd of VOICE_NAV) {
@@ -111,16 +129,11 @@ function detectNavCommand(transcript: string): { path: string; label: string } |
   return null;
 }
 
-/* ─── Chat Modal ─────────────────────────────────────── */
+/* ─── Voice mic state ────────────────────────────────── */
 
-const INITIAL_MESSAGES: BhoomiMessage[] = [
-  {
-    id: 0,
-    from: "bhoomi",
-    text: "🌿 Namaste! I'm BHOOMI, your AI farming assistant. Ask me about crop diseases, fertilizers, weather, or market prices. You can also use your voice in any language!",
-    time: now(),
-  },
-];
+type VoiceState = "idle" | "listening" | "processing" | "success" | "error";
+
+/* ─── Chat Modal ─────────────────────────────────────── */
 
 declare global {
   interface Window {
@@ -131,22 +144,31 @@ declare global {
 
 export default function BhoomiButton() {
   const { open, setOpen } = useBhoomi();
+  const { lang, t } = useLanguage();
+
+  const INITIAL_MESSAGES: BhoomiMessage[] = [
+    {
+      id: 0,
+      from: "bhoomi",
+      text: "🌿 Namaste! I'm BHOOMI, your AI farming assistant. Ask me about crop diseases, fertilizers, weather, or market prices. You can also use your voice — I understand Hindi, Marathi, and English!",
+      time: now(),
+    },
+  ];
+
   const [messages, setMessages] = useState<BhoomiMessage[]>(INITIAL_MESSAGES);
   const [input, setInput] = useState("");
   const [typing, setTyping] = useState(false);
-  const [listening, setListening] = useState(false);
+  const [voiceState, setVoiceState] = useState<VoiceState>("idle");
   const [navSuggestion, setNavSuggestion] = useState<{ path: string; label: string } | null>(null);
   const [showTooltip, setShowTooltip] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const recognitionRef = useRef<SpeechRecognition | null>(null);
   const [, navigate] = useLocation();
-  let nextId = useRef(1);
+  const nextId = useRef(1);
 
   useEffect(() => {
-    if (open) {
-      setTimeout(() => inputRef.current?.focus(), 300);
-    }
+    if (open) setTimeout(() => inputRef.current?.focus(), 300);
   }, [open]);
 
   useEffect(() => {
@@ -163,24 +185,16 @@ export default function BhoomiButton() {
     const trimmed = text.trim();
     if (!trimmed) return;
     setInput("");
-
     addMessage("user", trimmed);
-
     const navCmd = detectNavCommand(trimmed);
-    if (navCmd) {
-      setNavSuggestion(navCmd);
-    }
-
+    if (navCmd) setNavSuggestion(navCmd);
     setTyping(true);
-    await new Promise((r) => setTimeout(r, 1000 + Math.random() * 600));
+    await new Promise((r) => setTimeout(r, 900 + Math.random() * 500));
     setTyping(false);
-
     const reply = navCmd
       ? `Sure! Navigating you to the ${navCmd.label} page now… 🚀`
       : getBhoomiReply(trimmed);
-
     addMessage("bhoomi", reply);
-
     if (navCmd) {
       await new Promise((r) => setTimeout(r, 800));
       navigate(navCmd.path);
@@ -198,33 +212,69 @@ export default function BhoomiButton() {
   const startVoice = () => {
     const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SR) {
-      addMessage("bhoomi", "Voice input is not supported in your browser. Please type your question instead.");
+      addMessage("bhoomi", t("bhoomi.noMic"));
+      setVoiceState("error");
+      setTimeout(() => setVoiceState("idle"), 3000);
       return;
     }
+
     const recognition = new SR();
     recognition.continuous = false;
     recognition.interimResults = false;
-    recognition.lang = ""; // auto-detect / use device language
+    recognition.lang = SPEECH_LANG[lang] ?? "en-IN";
     recognitionRef.current = recognition;
 
-    recognition.onstart = () => setListening(true);
-    recognition.onend = () => setListening(false);
-    recognition.onerror = () => {
-      setListening(false);
-      addMessage("bhoomi", "I couldn't catch that. Please speak clearly or type your question.");
+    recognition.onstart = () => setVoiceState("listening");
+
+    recognition.onend = () => {
+      if (voiceState === "listening") setVoiceState("idle");
     };
-    recognition.onresult = (e) => {
+
+    recognition.onerror = (e: Event & { error?: string }) => {
+      const errCode = (e as unknown as { error?: string }).error ?? "";
+      const permDenied = errCode === "not-allowed" || errCode === "service-not-allowed";
+      setVoiceState("error");
+      addMessage(
+        "bhoomi",
+        permDenied
+          ? "Microphone access was denied. Please allow microphone permission in your browser settings, then try again."
+          : t("bhoomi.micError")
+      );
+      setTimeout(() => setVoiceState("idle"), 3000);
+    };
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    recognition.onresult = (e: any) => {
+      setVoiceState("processing");
       const transcript = e.results[0][0].transcript;
       setInput(transcript);
       sendMessage(transcript);
+      setTimeout(() => setVoiceState("idle"), 1000);
     };
-    recognition.start();
+
+    try {
+      recognition.start();
+    } catch {
+      setVoiceState("error");
+      setTimeout(() => setVoiceState("idle"), 2000);
+    }
   };
 
   const stopVoice = () => {
     recognitionRef.current?.stop();
-    setListening(false);
+    setVoiceState("idle");
   };
+
+  const listening = voiceState === "listening";
+
+  /* ── Mic button appearance by state ── */
+  const micClass = {
+    idle:       "bg-muted text-muted-foreground hover:bg-primary/10 hover:text-primary",
+    listening:  "bg-red-100 text-red-600 animate-pulse",
+    processing: "bg-amber-100 text-amber-600",
+    success:    "bg-emerald-100 text-emerald-600",
+    error:      "bg-red-50 text-red-400",
+  }[voiceState];
 
   return (
     <>
@@ -238,7 +288,7 @@ export default function BhoomiButton() {
               exit={{ opacity: 0, y: 6, scale: 0.9 }}
               className="bg-foreground text-background text-xs font-medium px-3 py-2 rounded-xl shadow-lg whitespace-nowrap flex items-center gap-1.5"
             >
-              <Bot className="h-3.5 w-3.5" /> Chat with BHOOMI
+              <Bot className="h-3.5 w-3.5" /> {t("nav.bhoomi")}
             </motion.div>
           )}
         </AnimatePresence>
@@ -248,7 +298,7 @@ export default function BhoomiButton() {
           whileTap={{ scale: 0.95 }}
           onHoverStart={() => setShowTooltip(true)}
           onHoverEnd={() => setShowTooltip(false)}
-          onClick={() => setOpen((v) => !v)}
+          onClick={() => setOpen(!open)}
           className="relative w-14 h-14 rounded-full bg-gradient-to-br from-primary to-emerald-600 shadow-xl flex items-center justify-center text-white focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
           aria-label="Open BHOOMI AI assistant"
         >
@@ -275,7 +325,6 @@ export default function BhoomiButton() {
       <AnimatePresence>
         {open && (
           <>
-            {/* Backdrop (mobile) */}
             <motion.div
               className="fixed inset-0 z-40 sm:hidden bg-black/30 backdrop-blur-sm"
               initial={{ opacity: 0 }}
@@ -306,19 +355,13 @@ export default function BhoomiButton() {
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-bold text-foreground">BHOOMI</p>
-                  <p className="text-[11px] text-muted-foreground">Your Farming Assistant · Online</p>
+                  <p className="text-[11px] text-muted-foreground">Your Farming Assistant · {t("bhoomi.online")}</p>
                 </div>
                 <div className="flex items-center gap-1">
-                  <button
-                    onClick={listening ? stopVoice : startVoice}
-                    className={cn(
-                      "w-8 h-8 rounded-lg flex items-center justify-center transition-all",
-                      listening ? "bg-red-100 text-red-600 animate-pulse" : "bg-muted text-muted-foreground hover:bg-primary/10 hover:text-primary"
-                    )}
-                    title={listening ? "Stop listening" : "Voice input"}
-                  >
-                    {listening ? <MicOff className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
-                  </button>
+                  {/* Language indicator badge */}
+                  <div className="px-2 py-1 rounded-lg bg-primary/10 text-primary text-[10px] font-bold">
+                    {lang}
+                  </div>
                   <button
                     onClick={() => setOpen(false)}
                     className="w-8 h-8 rounded-lg flex items-center justify-center bg-muted text-muted-foreground hover:bg-muted/80 transition-colors"
@@ -344,14 +387,12 @@ export default function BhoomiButton() {
                       </div>
                     )}
                     <div className="max-w-[78%]">
-                      <div
-                        className={cn(
-                          "px-3.5 py-2.5 rounded-2xl text-sm leading-relaxed",
-                          msg.from === "user"
-                            ? "bg-blue-500 text-white rounded-br-sm"
-                            : "bg-emerald-50 border border-emerald-100 text-foreground rounded-bl-sm"
-                        )}
-                      >
+                      <div className={cn(
+                        "px-3.5 py-2.5 rounded-2xl text-sm leading-relaxed",
+                        msg.from === "user"
+                          ? "bg-blue-500 text-white rounded-br-sm"
+                          : "bg-emerald-50 border border-emerald-100 text-foreground rounded-bl-sm"
+                      )}>
                         {msg.text}
                       </div>
                       <p className={cn("text-[10px] text-muted-foreground mt-1", msg.from === "user" ? "text-right" : "text-left")}>
@@ -380,12 +421,7 @@ export default function BhoomiButton() {
                       </div>
                       <div className="bg-emerald-50 border border-emerald-100 px-3.5 py-2.5 rounded-2xl rounded-bl-sm flex items-center gap-1.5">
                         {[0, 1, 2].map((i) => (
-                          <motion.div
-                            key={i}
-                            className="w-2 h-2 rounded-full bg-emerald-400"
-                            animate={{ y: [0, -4, 0] }}
-                            transition={{ delay: i * 0.15, duration: 0.5, repeat: Infinity }}
-                          />
+                          <motion.div key={i} className="w-2 h-2 rounded-full bg-emerald-400" animate={{ y: [0, -4, 0] }} transition={{ delay: i * 0.15, duration: 0.5, repeat: Infinity }} />
                         ))}
                       </div>
                     </motion.div>
@@ -395,12 +431,7 @@ export default function BhoomiButton() {
                 {/* Nav suggestion */}
                 <AnimatePresence>
                   {navSuggestion && (
-                    <motion.div
-                      initial={{ opacity: 0, y: 6 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0 }}
-                      className="flex justify-center"
-                    >
+                    <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="flex justify-center">
                       <div className="bg-primary/10 border border-primary/20 text-primary text-xs font-medium px-3 py-1.5 rounded-full flex items-center gap-1.5">
                         <Bot className="h-3 w-3" /> Navigating to {navSuggestion.label}…
                       </div>
@@ -411,22 +442,46 @@ export default function BhoomiButton() {
                 <div ref={bottomRef} />
               </div>
 
-              {/* Voice listening banner */}
+              {/* Voice status banner */}
               <AnimatePresence>
-                {listening && (
+                {voiceState !== "idle" && (
                   <motion.div
                     initial={{ height: 0, opacity: 0 }}
                     animate={{ height: "auto", opacity: 1 }}
                     exit={{ height: 0, opacity: 0 }}
                     className="overflow-hidden"
                   >
-                    <div className="flex items-center gap-2 px-4 py-2.5 bg-red-50 border-t border-red-100">
-                      <motion.div
-                        className="w-2.5 h-2.5 rounded-full bg-red-500"
-                        animate={{ scale: [1, 1.5, 1] }}
-                        transition={{ duration: 0.7, repeat: Infinity }}
-                      />
-                      <p className="text-xs text-red-700 font-medium">Listening in your language… speak now</p>
+                    <div className={cn(
+                      "flex items-center gap-2 px-4 py-2.5 border-t",
+                      voiceState === "listening"  && "bg-red-50 border-red-100",
+                      voiceState === "processing" && "bg-amber-50 border-amber-100",
+                      voiceState === "success"    && "bg-emerald-50 border-emerald-100",
+                      voiceState === "error"      && "bg-red-50 border-red-100",
+                    )}>
+                      {voiceState === "listening" && (
+                        <motion.div className="w-2.5 h-2.5 rounded-full bg-red-500 shrink-0" animate={{ scale: [1, 1.5, 1] }} transition={{ duration: 0.7, repeat: Infinity }} />
+                      )}
+                      {voiceState === "processing" && (
+                        <motion.div className="w-2.5 h-2.5 rounded-full bg-amber-400 shrink-0" animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: "linear" }} />
+                      )}
+                      {voiceState === "error" && <span className="text-red-500 text-sm">⚠</span>}
+                      <p className={cn(
+                        "text-xs font-medium",
+                        voiceState === "listening"  && "text-red-700",
+                        voiceState === "processing" && "text-amber-700",
+                        voiceState === "success"    && "text-emerald-700",
+                        voiceState === "error"      && "text-red-700",
+                      )}>
+                        {voiceState === "listening"  && t("bhoomi.listening")}
+                        {voiceState === "processing" && "Processing…"}
+                        {voiceState === "error"      && "Microphone unavailable — please type instead"}
+                      </p>
+                      {/* Language being used for recognition */}
+                      {voiceState === "listening" && (
+                        <span className="ml-auto text-[10px] text-red-600 font-mono bg-red-100 px-1.5 py-0.5 rounded">
+                          {SPEECH_LANG[lang]}
+                        </span>
+                      )}
                     </div>
                   </motion.div>
                 )}
@@ -438,7 +493,7 @@ export default function BhoomiButton() {
                   <input
                     ref={inputRef}
                     type="text"
-                    placeholder="Ask BHOOMI anything…"
+                    placeholder={t("bhoomi.placeholder")}
                     className="flex-1 bg-transparent text-sm outline-none text-foreground placeholder:text-muted-foreground min-w-0"
                     value={input}
                     onChange={(e) => setInput(e.target.value)}
@@ -446,11 +501,8 @@ export default function BhoomiButton() {
                   />
                   <button
                     onClick={listening ? stopVoice : startVoice}
-                    className={cn(
-                      "w-8 h-8 rounded-lg flex items-center justify-center shrink-0 transition-all",
-                      listening ? "bg-red-100 text-red-600" : "bg-muted text-muted-foreground hover:bg-primary/10 hover:text-primary"
-                    )}
-                    title="Voice input"
+                    className={cn("w-8 h-8 rounded-lg flex items-center justify-center shrink-0 transition-all", micClass)}
+                    title={listening ? "Stop listening" : "Voice input"}
                   >
                     {listening ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
                   </button>
@@ -463,7 +515,7 @@ export default function BhoomiButton() {
                   </button>
                 </div>
                 <p className="text-[10px] text-center text-muted-foreground mt-2">
-                  Speak in Hindi, Marathi, English or any language · Voice nav enabled
+                  {t("bhoomi.voiceHint")}
                 </p>
               </div>
             </motion.div>

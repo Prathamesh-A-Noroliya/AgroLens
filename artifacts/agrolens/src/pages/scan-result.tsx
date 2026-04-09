@@ -423,7 +423,7 @@ function ExpertHelpSection({ isPremium, onSubscribe }: { isPremium: boolean; onS
                         <Sparkles className="h-3.5 w-3.5" />
                         Subscribe to Unlock Expert Help
                       </motion.button>
-                      <p className="text-[10px] text-muted-foreground mt-2">Starting ₹199/month · Cancel anytime</p>
+                      <p className="text-[10px] text-muted-foreground mt-2">Starting ₹79/month · Cancel anytime</p>
                     </div>
                   </div>
                 </div>
@@ -584,7 +584,7 @@ export default function ScanResultPage() {
                 <Lock className="h-4 w-4" /> Unlock Full Recommendations
                 <ChevronRight className="h-4 w-4" />
               </motion.button>
-              <p className="text-center text-[11px] text-muted-foreground mt-2">AgroLens Pro · ₹199/month</p>
+              <p className="text-center text-[11px] text-muted-foreground mt-2">AgroLens Pro · ₹79/month</p>
             </CardContent>
           </Card>
         </motion.div>

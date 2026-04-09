@@ -8,44 +8,29 @@ import {
 import AppLayout from "@/components/layout/AppLayout";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { useLanguage } from "@/lib/language-context";
 import { cn } from "@/lib/utils";
 
-const FEATURES = [
-  "Unlimited AI crop scans",
-  "BHOOMI voice assistant (24/7)",
-  "Full premium treatment protocols",
-  "Fertilizer & dosage plans",
-  "Historical disease insights",
-  "Weather-based spray advisories",
-  "Market price & mandi alerts",
-  "Priority support (< 2 hour response)",
-  "Offline scan mode",
-  "Multi-field management",
-];
+/* ─── Pricing constants ──────────────────────────────── */
 
-const PLANS = [
-  {
-    id: "monthly",
-    label: "Monthly",
-    price: "₹299",
-    period: "/month",
-    total: "₹299 billed monthly",
-    saving: null,
-    badge: null,
-    highlight: false,
-    description: "Perfect for trying out AgroLens Pro.",
-  },
-  {
-    id: "yearly",
-    label: "Yearly",
-    price: "₹199",
-    period: "/month",
-    total: "₹2,388 billed annually",
-    saving: "Save ₹1,200/year",
-    badge: "Best Value",
-    highlight: true,
-    description: "For serious farmers — maximum savings.",
-  },
+export const PRICING = {
+  monthly: { amount: 79, label: "₹79", total: "₹79 billed monthly", saving: null },
+  yearly:  { amount: 849, label: "₹849", total: "₹849 billed yearly", perMonth: "₹70.75/month", saving: "Save ₹99/year" },
+};
+
+/* ─── Feature list (translated in component) ─────────── */
+
+const FEATURE_KEYS = [
+  "sub.feat.scans",
+  "sub.feat.bhoomi",
+  "sub.feat.protocols",
+  "sub.feat.fertilizer",
+  "sub.feat.history",
+  "sub.feat.weather",
+  "sub.feat.market",
+  "sub.feat.support",
+  "sub.feat.offline",
+  "sub.feat.multifield",
 ];
 
 const container = {
@@ -59,7 +44,40 @@ const item = {
 
 export default function SubscriptionPage() {
   const [, navigate] = useLocation();
+  const { t } = useLanguage();
   const [selected, setSelected] = useState<"monthly" | "yearly">("yearly");
+
+  const PLANS = [
+    {
+      id: "monthly" as const,
+      label: t("sub.monthly"),
+      price: PRICING.monthly.label,
+      period: t("sub.perMonth"),
+      total: PRICING.monthly.total,
+      saving: null,
+      badge: null,
+      highlight: false,
+      description: t("sub.monthly.desc"),
+    },
+    {
+      id: "yearly" as const,
+      label: t("sub.yearly"),
+      price: PRICING.yearly.label,
+      period: t("sub.yearly.period"),
+      total: PRICING.yearly.total,
+      saving: PRICING.yearly.saving,
+      badge: t("sub.bestValue"),
+      highlight: true,
+      description: t("sub.yearly.desc"),
+    },
+  ];
+
+  const TRUST_BADGES = [
+    { icon: Shield, label: t("sub.cancelAnytime") },
+    { icon: Lock,   label: t("sub.secure") },
+    { icon: Star,   label: t("sub.farmers") },
+    { icon: Leaf,   label: t("sub.madeInIndia") },
+  ];
 
   return (
     <AppLayout>
@@ -68,15 +86,15 @@ export default function SubscriptionPage() {
         {/* Header */}
         <motion.div variants={item}>
           <button onClick={() => navigate("/dashboard")} className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors mb-3">
-            <ChevronLeft className="h-4 w-4" /> Back to Dashboard
+            <ChevronLeft className="h-4 w-4" /> {t("common.back")}
           </button>
           <div className="text-center space-y-2">
             <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-primary to-emerald-600 flex items-center justify-center mx-auto shadow-md">
               <Sparkles className="h-7 w-7 text-white" />
             </div>
-            <h1 className="text-2xl font-bold text-foreground">Unlock AgroLens Pro</h1>
+            <h1 className="text-2xl font-bold text-foreground">{t("sub.unlock")}</h1>
             <p className="text-muted-foreground text-sm max-w-sm mx-auto">
-              Get the full power of AI crop intelligence — unlimited scans, BHOOMI assistant, and expert treatment protocols.
+              {t("sub.unlockDesc")}
             </p>
           </div>
         </motion.div>
@@ -87,7 +105,7 @@ export default function SubscriptionPage() {
             {PLANS.map((plan) => (
               <button
                 key={plan.id}
-                onClick={() => setSelected(plan.id as "monthly" | "yearly")}
+                onClick={() => setSelected(plan.id)}
                 className={cn(
                   "px-5 py-2 rounded-full text-sm font-semibold transition-all duration-200",
                   selected === plan.id
@@ -98,7 +116,7 @@ export default function SubscriptionPage() {
                 {plan.label}
                 {plan.saving && selected === plan.id && (
                   <span className="ml-2 text-[10px] bg-primary-foreground/20 text-primary-foreground px-1.5 py-0.5 rounded-full">
-                    Save 33%
+                    {t("sub.save")}
                   </span>
                 )}
               </button>
@@ -111,7 +129,7 @@ export default function SubscriptionPage() {
               <motion.div
                 key={plan.id}
                 whileHover={{ y: -2 }}
-                onClick={() => setSelected(plan.id as "monthly" | "yearly")}
+                onClick={() => setSelected(plan.id)}
                 className={cn(
                   "relative rounded-2xl border-2 p-5 cursor-pointer transition-all duration-200",
                   selected === plan.id
@@ -126,6 +144,16 @@ export default function SubscriptionPage() {
                     </span>
                   </div>
                 )}
+
+                {/* Free tier label for comparison */}
+                {plan.id === "monthly" && (
+                  <div className="absolute top-3 right-3">
+                    <span className="text-[10px] bg-muted text-muted-foreground font-semibold px-2 py-0.5 rounded-full border border-border/60">
+                      {t("sub.flexible")}
+                    </span>
+                  </div>
+                )}
+
                 <div className="flex items-start justify-between mb-3">
                   <div>
                     <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1">{plan.label}</p>
@@ -138,8 +166,14 @@ export default function SubscriptionPage() {
                     {selected === plan.id && <CheckCircle2 className="h-4 w-4 text-primary-foreground" />}
                   </div>
                 </div>
+
                 <p className="text-xs text-muted-foreground">{plan.description}</p>
                 <p className="text-xs text-muted-foreground mt-2">{plan.total}</p>
+
+                {plan.id === "yearly" && (
+                  <p className="text-[11px] text-muted-foreground mt-1">{PRICING.yearly.perMonth} {t("sub.effective")}</p>
+                )}
+
                 {plan.saving && (
                   <div className="mt-2 inline-flex items-center gap-1 bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-semibold px-2 py-0.5 rounded-full">
                     <Zap className="h-3 w-3" /> {plan.saving}
@@ -154,18 +188,18 @@ export default function SubscriptionPage() {
         <motion.div variants={item}>
           <Card className="rounded-2xl border-border/60 shadow-sm">
             <CardContent className="p-5">
-              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-widest mb-4">Everything included</p>
+              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-widest mb-4">{t("sub.everything")}</p>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-2.5 gap-x-4">
-                {FEATURES.map((feat, i) => (
+                {FEATURE_KEYS.map((key, i) => (
                   <motion.div
-                    key={feat}
+                    key={key}
                     initial={{ opacity: 0, x: -8 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: 0.4 + i * 0.05 }}
                     className="flex items-center gap-2"
                   >
                     <CheckCircle2 className="h-4 w-4 text-emerald-500 shrink-0" />
-                    <span className="text-sm text-foreground">{feat}</span>
+                    <span className="text-sm text-foreground">{t(key)}</span>
                   </motion.div>
                 ))}
               </div>
@@ -173,14 +207,32 @@ export default function SubscriptionPage() {
           </Card>
         </motion.div>
 
+        {/* Free vs Premium comparison strip */}
+        <motion.div variants={item}>
+          <Card className="rounded-2xl border-border/60 shadow-sm overflow-hidden">
+            <div className="grid grid-cols-3 text-center text-xs font-semibold bg-muted/50 border-b border-border/60 divide-x divide-border/60">
+              <div className="py-2.5 text-muted-foreground">{t("sub.feature")}</div>
+              <div className="py-2.5 text-muted-foreground">{t("sub.free")}</div>
+              <div className="py-2.5 text-primary">{t("sub.pro")}</div>
+            </div>
+            {[
+              { feature: t("sub.comp.scans"),    free: "3/month",  pro: t("sub.unlimited") },
+              { feature: t("sub.comp.bhoomi"),   free: "❌",       pro: "✅" },
+              { feature: t("sub.comp.protocols"),free: "❌",       pro: "✅" },
+              { feature: t("sub.comp.expert"),   free: "❌",       pro: "✅" },
+            ].map(({ feature, free, pro }) => (
+              <div key={feature} className="grid grid-cols-3 text-center text-xs divide-x divide-border/60 border-b border-border/60 last:border-b-0">
+                <div className="py-2.5 px-2 text-muted-foreground text-left">{feature}</div>
+                <div className="py-2.5 text-muted-foreground">{free}</div>
+                <div className="py-2.5 text-emerald-600 font-semibold">{pro}</div>
+              </div>
+            ))}
+          </Card>
+        </motion.div>
+
         {/* Trust badges */}
         <motion.div variants={item} className="flex items-center justify-center gap-6 flex-wrap">
-          {[
-            { icon: Shield, label: "Cancel anytime" },
-            { icon: Lock, label: "Secure payment" },
-            { icon: Star, label: "50K+ farmers" },
-            { icon: Leaf, label: "Made in India" },
-          ].map(({ icon: Icon, label }) => (
+          {TRUST_BADGES.map(({ icon: Icon, label }) => (
             <div key={label} className="flex items-center gap-1.5 text-xs text-muted-foreground">
               <Icon className="h-3.5 w-3.5 text-primary" />
               {label}
@@ -196,11 +248,11 @@ export default function SubscriptionPage() {
             onClick={() => navigate("/checkout")}
           >
             <Sparkles className="h-5 w-5" />
-            Continue to Payment — {selected === "yearly" ? "₹2,388/yr" : "₹299/mo"}
+            {t("sub.continueTo")} — {selected === "yearly" ? `₹849/yr` : `₹79/mo`}
             <ArrowRight className="h-5 w-5" />
           </Button>
           <p className="text-center text-xs text-muted-foreground mt-2.5">
-            7-day free trial · No questions asked cancellation
+            {t("sub.trial")}
           </p>
         </motion.div>
       </motion.div>

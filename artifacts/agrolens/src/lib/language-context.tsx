@@ -2,9 +2,10 @@ import { createContext, useContext, useState, useCallback, type ReactNode } from
 
 export type LangCode = "EN" | "HI" | "MR";
 
+const STORAGE_KEY = "agrolens_lang";
+
 /* ─────────────────────────────────────────────────────────────
    TRANSLATION DICTIONARY
-   Keys use dot-notation: "section.subKey"
    ───────────────────────────────────────────────────────────── */
 
 const dict: Record<LangCode, Record<string, string>> = {
@@ -12,7 +13,7 @@ const dict: Record<LangCode, Record<string, string>> = {
     /* Header */
     "header.tagline": "AI Crop Intelligence",
 
-    /* Sidebar — nav items */
+    /* Sidebar */
     "nav.section.navigation": "Navigation",
     "nav.section.billing": "Plans & Billing",
     "nav.dashboard": "Dashboard",
@@ -23,11 +24,9 @@ const dict: Record<LangCode, Record<string, string>> = {
     "nav.profile": "Profile",
     "nav.plans": "Pro Plans",
     "nav.billing": "Payment & Billing",
-
-    /* Sidebar — upgrade card */
     "sidebar.upgradeTo": "Upgrade to Pro",
     "sidebar.upgradeFeatures": "Unlimited scans · BHOOMI voice · Treatment protocols",
-    "sidebar.viewPlans": "View plans — from ₹199/mo →",
+    "sidebar.viewPlans": "View plans — from ₹79/mo →",
     "sidebar.signOut": "Sign Out",
 
     /* Auth — Login */
@@ -88,7 +87,7 @@ const dict: Record<LangCode, Record<string, string>> = {
     "dashboard.moderate": "Moderate",
     "dashboard.info": "Info",
 
-    /* Weather widget */
+    /* Weather */
     "weather.today": "Today's Weather",
     "weather.humidity": "Humidity",
     "weather.wind": "Wind",
@@ -139,10 +138,17 @@ const dict: Record<LangCode, Record<string, string>> = {
     /* Recommendations */
     "reco.title": "Premium Recommendations",
     "reco.treatment": "Treatment Protocol",
-    "reco.fertilizer": "Fertilizer Dosage",
+    "reco.fertilizer": "Fertilizer Dosage Plan",
     "reco.organic": "Organic Alternatives",
     "reco.application": "Application Methods",
-    "reco.historicalData": "Historical Disease Data",
+    "reco.historicalData": "Historical Disease Occurrence",
+    "reco.pesticide": "Pesticide Guidance",
+    "reco.preventive": "Preventive Care",
+    "reco.dosage": "Dosage Guide",
+    "reco.irrigation": "Irrigation Advice",
+    "reco.risk": "Risk Level",
+    "reco.organic.badge": "Zero Chemical",
+    "reco.recommended": "Recommended",
 
     /* History */
     "history.title": "Scan History",
@@ -156,26 +162,80 @@ const dict: Record<LangCode, Record<string, string>> = {
     "history.totalScans": "Total Scans",
     "history.thisMonth": "This Month",
 
-    /* Subscription */
+    /* Subscription / Pricing */
     "sub.title": "Choose Your Plan",
     "sub.subtitle": "Unlock the full power of AI farming intelligence",
+    "sub.unlock": "Unlock AgroLens Pro",
+    "sub.unlockDesc": "Get the full power of AI crop intelligence — unlimited scans, BHOOMI assistant, and expert treatment protocols.",
     "sub.monthly": "Monthly",
     "sub.yearly": "Yearly",
-    "sub.save": "Save 33%",
+    "sub.monthly.desc": "Perfect for trying out AgroLens Pro.",
+    "sub.yearly.desc": "For serious farmers — maximum savings.",
+    "sub.yearly.period": "/year",
+    "sub.save": "Save 10%",
+    "sub.bestValue": "Best Value",
     "sub.getStarted": "Get Started",
     "sub.currentPlan": "Current Plan",
     "sub.popular": "Most Popular",
-    "sub.perMonth": "/mo",
+    "sub.perMonth": "/month",
     "sub.billedYearly": "billed yearly",
+    "sub.effective": "effectively",
+    "sub.flexible": "Flexible",
+    "sub.everything": "Everything included",
+    "sub.trial": "7-day free trial · No questions asked cancellation",
+    "sub.continueTo": "Continue to Payment",
+    "sub.cancelAnytime": "Cancel anytime",
+    "sub.secure": "Secure payment",
+    "sub.farmers": "50K+ farmers",
+    "sub.madeInIndia": "Made in India",
+    "sub.unlimited": "Unlimited",
+    "sub.feature": "Feature",
+    "sub.free": "Free",
+    "sub.pro": "Pro",
+    "sub.comp.scans": "AI Scans",
+    "sub.comp.bhoomi": "BHOOMI Voice",
+    "sub.comp.protocols": "Full Protocols",
+    "sub.comp.expert": "Expert Help",
+    /* Feature list items */
+    "sub.feat.scans": "Unlimited AI crop scans",
+    "sub.feat.bhoomi": "BHOOMI voice assistant (24/7)",
+    "sub.feat.protocols": "Full premium treatment protocols",
+    "sub.feat.fertilizer": "Fertilizer & dosage plans",
+    "sub.feat.history": "Historical disease insights",
+    "sub.feat.weather": "Weather-based spray advisories",
+    "sub.feat.market": "Market price & mandi alerts",
+    "sub.feat.support": "Priority support (< 2 hour response)",
+    "sub.feat.offline": "Offline scan mode",
+    "sub.feat.multifield": "Multi-field management",
 
     /* Checkout */
     "checkout.title": "Complete Payment",
     "checkout.success": "Payment Successful!",
     "checkout.successMsg": "Your Pro subscription is now active.",
+    "checkout.welcomePro": "Welcome to AgroLens Pro. Your account has been upgraded instantly.",
     "checkout.payNow": "Pay Now",
+    "checkout.paySecurely": "Pay ₹849 Securely",
+    "checkout.processing": "Processing Payment…",
+    "checkout.backToPlans": "Back to Plans",
+    "checkout.secureCheckout": "Secure Checkout",
+    "checkout.ssl": "256-bit SSL encrypted · Powered by Razorpay",
+    "checkout.paymentMethod": "Payment Method",
+    "checkout.plan": "Plan",
+    "checkout.amountPaid": "Amount paid",
+    "checkout.validUntil": "Valid until",
+    "checkout.transactionId": "Transaction ID",
+    "checkout.goToDashboard": "Go to Dashboard",
     "checkout.upi": "UPI",
     "checkout.card": "Credit / Debit Card",
     "checkout.wallet": "Wallet",
+
+    /* BHOOMI */
+    "bhoomi.online": "Online",
+    "bhoomi.listening": "Listening… speak now",
+    "bhoomi.placeholder": "Ask BHOOMI anything…",
+    "bhoomi.voiceHint": "Speak in Hindi, Marathi, English · Voice nav enabled",
+    "bhoomi.noMic": "Voice input is not supported in your browser. Please type your question instead.",
+    "bhoomi.micError": "I couldn't catch that. Please speak clearly or type your question.",
 
     /* Common */
     "common.loading": "Loading...",
@@ -193,7 +253,7 @@ const dict: Record<LangCode, Record<string, string>> = {
     /* Header */
     "header.tagline": "AI फसल बुद्धिमत्ता",
 
-    /* Sidebar — nav items */
+    /* Sidebar */
     "nav.section.navigation": "नेविगेशन",
     "nav.section.billing": "योजनाएं और बिलिंग",
     "nav.dashboard": "डैशबोर्ड",
@@ -204,11 +264,9 @@ const dict: Record<LangCode, Record<string, string>> = {
     "nav.profile": "प्रोफ़ाइल",
     "nav.plans": "प्रो योजनाएं",
     "nav.billing": "भुगतान और बिलिंग",
-
-    /* Sidebar — upgrade card */
     "sidebar.upgradeTo": "प्रो में अपग्रेड करें",
     "sidebar.upgradeFeatures": "असीमित स्कैन · BHOOMI वॉइस · उपचार प्रोटोकॉल",
-    "sidebar.viewPlans": "योजनाएं देखें — ₹199/माह से →",
+    "sidebar.viewPlans": "योजनाएं देखें — ₹79/माह से →",
     "sidebar.signOut": "साइन आउट",
 
     /* Auth — Login */
@@ -269,7 +327,7 @@ const dict: Record<LangCode, Record<string, string>> = {
     "dashboard.moderate": "मध्यम",
     "dashboard.info": "जानकारी",
 
-    /* Weather widget */
+    /* Weather */
     "weather.today": "आज का मौसम",
     "weather.humidity": "आर्द्रता",
     "weather.wind": "हवा",
@@ -320,10 +378,17 @@ const dict: Record<LangCode, Record<string, string>> = {
     /* Recommendations */
     "reco.title": "प्रीमियम सुझाव",
     "reco.treatment": "उपचार प्रोटोकॉल",
-    "reco.fertilizer": "उर्वरक मात्रा",
+    "reco.fertilizer": "उर्वरक मात्रा योजना",
     "reco.organic": "जैविक विकल्प",
     "reco.application": "प्रयोग विधियां",
-    "reco.historicalData": "ऐतिहासिक रोग डेटा",
+    "reco.historicalData": "ऐतिहासिक रोग घटना",
+    "reco.pesticide": "कीटनाशक मार्गदर्शन",
+    "reco.preventive": "निवारक देखभाल",
+    "reco.dosage": "खुराक मार्गदर्शिका",
+    "reco.irrigation": "सिंचाई सलाह",
+    "reco.risk": "जोखिम स्तर",
+    "reco.organic.badge": "शून्य रासायनिक",
+    "reco.recommended": "अनुशंसित",
 
     /* History */
     "history.title": "स्कैन इतिहास",
@@ -340,23 +405,76 @@ const dict: Record<LangCode, Record<string, string>> = {
     /* Subscription */
     "sub.title": "अपनी योजना चुनें",
     "sub.subtitle": "AI कृषि बुद्धिमत्ता की पूरी शक्ति अनलॉक करें",
+    "sub.unlock": "AgroLens Pro अनलॉक करें",
+    "sub.unlockDesc": "AI फसल बुद्धिमत्ता की पूरी शक्ति पाएं — असीमित स्कैन, BHOOMI सहायक, और विशेषज्ञ उपचार प्रोटोकॉल।",
     "sub.monthly": "मासिक",
     "sub.yearly": "वार्षिक",
-    "sub.save": "33% बचाएं",
+    "sub.monthly.desc": "AgroLens Pro आज़माने के लिए परफेक्ट।",
+    "sub.yearly.desc": "गंभीर किसानों के लिए — अधिकतम बचत।",
+    "sub.yearly.period": "/वर्ष",
+    "sub.save": "10% बचाएं",
+    "sub.bestValue": "सर्वोत्तम मूल्य",
     "sub.getStarted": "शुरू करें",
     "sub.currentPlan": "वर्तमान योजना",
     "sub.popular": "सबसे लोकप्रिय",
     "sub.perMonth": "/माह",
     "sub.billedYearly": "वार्षिक बिल",
+    "sub.effective": "प्रभावी रूप से",
+    "sub.flexible": "लचीला",
+    "sub.everything": "सब कुछ शामिल",
+    "sub.trial": "7 दिन का निःशुल्क ट्रायल · बिना सवाल रद्दीकरण",
+    "sub.continueTo": "भुगतान के लिए जारी रखें",
+    "sub.cancelAnytime": "कभी भी रद्द करें",
+    "sub.secure": "सुरक्षित भुगतान",
+    "sub.farmers": "50K+ किसान",
+    "sub.madeInIndia": "भारत में निर्मित",
+    "sub.unlimited": "असीमित",
+    "sub.feature": "सुविधा",
+    "sub.free": "निःशुल्क",
+    "sub.pro": "प्रो",
+    "sub.comp.scans": "AI स्कैन",
+    "sub.comp.bhoomi": "BHOOMI वॉइस",
+    "sub.comp.protocols": "पूर्ण प्रोटोकॉल",
+    "sub.comp.expert": "विशेषज्ञ सहायता",
+    "sub.feat.scans": "असीमित AI फसल स्कैन",
+    "sub.feat.bhoomi": "BHOOMI वॉइस सहायक (24/7)",
+    "sub.feat.protocols": "पूर्ण प्रीमियम उपचार प्रोटोकॉल",
+    "sub.feat.fertilizer": "उर्वरक और खुराक योजनाएं",
+    "sub.feat.history": "ऐतिहासिक रोग अंतर्दृष्टि",
+    "sub.feat.weather": "मौसम-आधारित स्प्रे सलाह",
+    "sub.feat.market": "बाजार मूल्य और मंडी अलर्ट",
+    "sub.feat.support": "प्राथमिकता समर्थन (< 2 घंटे)",
+    "sub.feat.offline": "ऑफलाइन स्कैन मोड",
+    "sub.feat.multifield": "बहु-खेत प्रबंधन",
 
     /* Checkout */
     "checkout.title": "भुगतान पूरा करें",
     "checkout.success": "भुगतान सफल!",
     "checkout.successMsg": "आपकी प्रो सदस्यता अब सक्रिय है।",
+    "checkout.welcomePro": "AgroLens Pro में आपका स्वागत है। आपका खाता तुरंत अपग्रेड हो गया है।",
     "checkout.payNow": "अभी भुगतान करें",
+    "checkout.paySecurely": "₹849 सुरक्षित रूप से भुगतान करें",
+    "checkout.processing": "भुगतान प्रक्रिया में…",
+    "checkout.backToPlans": "योजनाओं पर वापस जाएं",
+    "checkout.secureCheckout": "सुरक्षित चेकआउट",
+    "checkout.ssl": "256-बिट SSL एन्क्रिप्टेड · Razorpay द्वारा संचालित",
+    "checkout.paymentMethod": "भुगतान विधि",
+    "checkout.plan": "योजना",
+    "checkout.amountPaid": "भुगतान की गई राशि",
+    "checkout.validUntil": "तक वैध",
+    "checkout.transactionId": "लेनदेन ID",
+    "checkout.goToDashboard": "डैशबोर्ड पर जाएं",
     "checkout.upi": "UPI",
     "checkout.card": "क्रेडिट / डेबिट कार्ड",
     "checkout.wallet": "वॉलेट",
+
+    /* BHOOMI */
+    "bhoomi.online": "ऑनलाइन",
+    "bhoomi.listening": "सुन रहा हूं… अभी बोलें",
+    "bhoomi.placeholder": "BHOOMI से कुछ भी पूछें…",
+    "bhoomi.voiceHint": "हिन्दी, मराठी, अंग्रेज़ी में बोलें · वॉइस नेव सक्षम",
+    "bhoomi.noMic": "आपके ब्राउज़र में वॉइस इनपुट समर्थित नहीं है। कृपया टाइप करें।",
+    "bhoomi.micError": "मैं समझ नहीं पाया। कृपया स्पष्ट रूप से बोलें या टाइप करें।",
 
     /* Common */
     "common.loading": "लोड हो रहा है...",
@@ -374,7 +492,7 @@ const dict: Record<LangCode, Record<string, string>> = {
     /* Header */
     "header.tagline": "AI पीक बुद्धिमत्ता",
 
-    /* Sidebar — nav items */
+    /* Sidebar */
     "nav.section.navigation": "नेव्हिगेशन",
     "nav.section.billing": "योजना आणि बिलिंग",
     "nav.dashboard": "डॅशबोर्ड",
@@ -385,11 +503,9 @@ const dict: Record<LangCode, Record<string, string>> = {
     "nav.profile": "प्रोफाइल",
     "nav.plans": "प्रो योजना",
     "nav.billing": "पेमेंट आणि बिलिंग",
-
-    /* Sidebar — upgrade card */
     "sidebar.upgradeTo": "प्रोमध्ये अपग्रेड करा",
     "sidebar.upgradeFeatures": "अमर्यादित स्कॅन · BHOOMI व्हॉइस · उपचार प्रोटोकॉल",
-    "sidebar.viewPlans": "योजना पाहा — ₹199/महिना पासून →",
+    "sidebar.viewPlans": "योजना पाहा — ₹79/महिना पासून →",
     "sidebar.signOut": "साइन आउट करा",
 
     /* Auth — Login */
@@ -450,7 +566,7 @@ const dict: Record<LangCode, Record<string, string>> = {
     "dashboard.moderate": "मध्यम",
     "dashboard.info": "माहिती",
 
-    /* Weather widget */
+    /* Weather */
     "weather.today": "आजचे हवामान",
     "weather.humidity": "आर्द्रता",
     "weather.wind": "वारा",
@@ -501,10 +617,17 @@ const dict: Record<LangCode, Record<string, string>> = {
     /* Recommendations */
     "reco.title": "प्रीमियम शिफारसी",
     "reco.treatment": "उपचार प्रोटोकॉल",
-    "reco.fertilizer": "खत मात्रा",
+    "reco.fertilizer": "खत मात्रा योजना",
     "reco.organic": "सेंद्रिय पर्याय",
     "reco.application": "वापर पद्धती",
-    "reco.historicalData": "ऐतिहासिक रोग डेटा",
+    "reco.historicalData": "ऐतिहासिक रोग घटना",
+    "reco.pesticide": "कीटकनाशक मार्गदर्शन",
+    "reco.preventive": "प्रतिबंधात्मक काळजी",
+    "reco.dosage": "मात्रा मार्गदर्शिका",
+    "reco.irrigation": "सिंचन सल्ला",
+    "reco.risk": "धोका पातळी",
+    "reco.organic.badge": "शून्य रासायनिक",
+    "reco.recommended": "शिफारस केलेले",
 
     /* History */
     "history.title": "स्कॅन इतिहास",
@@ -521,23 +644,76 @@ const dict: Record<LangCode, Record<string, string>> = {
     /* Subscription */
     "sub.title": "आपली योजना निवडा",
     "sub.subtitle": "AI शेती बुद्धिमत्तेची संपूर्ण शक्ती अनलॉक करा",
+    "sub.unlock": "AgroLens Pro अनलॉक करा",
+    "sub.unlockDesc": "AI पीक बुद्धिमत्तेची संपूर्ण शक्ती मिळवा — अमर्यादित स्कॅन, BHOOMI सहाय्यक, आणि तज्ज्ञ उपचार प्रोटोकॉल.",
     "sub.monthly": "मासिक",
     "sub.yearly": "वार्षिक",
-    "sub.save": "33% बचत",
+    "sub.monthly.desc": "AgroLens Pro वापरून पाहण्यासाठी उत्तम.",
+    "sub.yearly.desc": "गंभीर शेतकऱ्यांसाठी — जास्तीत जास्त बचत.",
+    "sub.yearly.period": "/वर्ष",
+    "sub.save": "10% बचत",
+    "sub.bestValue": "सर्वोत्तम मूल्य",
     "sub.getStarted": "सुरू करा",
     "sub.currentPlan": "सध्याची योजना",
     "sub.popular": "सर्वात लोकप्रिय",
     "sub.perMonth": "/महिना",
     "sub.billedYearly": "वार्षिक बिल",
+    "sub.effective": "प्रभावीपणे",
+    "sub.flexible": "लवचिक",
+    "sub.everything": "सर्व काही समाविष्ट",
+    "sub.trial": "7 दिवस विनामूल्य ट्रायल · कोणत्याही प्रश्नाशिवाय रद्दीकरण",
+    "sub.continueTo": "पेमेंटसाठी पुढे जा",
+    "sub.cancelAnytime": "कधीही रद्द करा",
+    "sub.secure": "सुरक्षित पेमेंट",
+    "sub.farmers": "50K+ शेतकरी",
+    "sub.madeInIndia": "भारतात बनवलेले",
+    "sub.unlimited": "अमर्यादित",
+    "sub.feature": "वैशिष्ट्य",
+    "sub.free": "विनामूल्य",
+    "sub.pro": "प्रो",
+    "sub.comp.scans": "AI स्कॅन",
+    "sub.comp.bhoomi": "BHOOMI व्हॉइस",
+    "sub.comp.protocols": "संपूर्ण प्रोटोकॉल",
+    "sub.comp.expert": "तज्ज्ञ मदत",
+    "sub.feat.scans": "अमर्यादित AI पीक स्कॅन",
+    "sub.feat.bhoomi": "BHOOMI व्हॉइस सहाय्यक (24/7)",
+    "sub.feat.protocols": "संपूर्ण प्रीमियम उपचार प्रोटोकॉल",
+    "sub.feat.fertilizer": "खत आणि मात्रा योजना",
+    "sub.feat.history": "ऐतिहासिक रोग माहिती",
+    "sub.feat.weather": "हवामान-आधारित फवारणी सल्ला",
+    "sub.feat.market": "बाजारभाव आणि मंडी अलर्ट",
+    "sub.feat.support": "प्राधान्य समर्थन (< 2 तास)",
+    "sub.feat.offline": "ऑफलाइन स्कॅन मोड",
+    "sub.feat.multifield": "बहु-शेत व्यवस्थापन",
 
     /* Checkout */
     "checkout.title": "पेमेंट पूर्ण करा",
     "checkout.success": "पेमेंट यशस्वी!",
     "checkout.successMsg": "तुमची प्रो सदस्यता आता सक्रिय आहे.",
+    "checkout.welcomePro": "AgroLens Pro मध्ये आपले स्वागत आहे. तुमचे खाते त्वरित अपग्रेड झाले आहे.",
     "checkout.payNow": "आता पेमेंट करा",
+    "checkout.paySecurely": "₹849 सुरक्षितपणे पेमेंट करा",
+    "checkout.processing": "पेमेंट प्रक्रिया सुरू आहे…",
+    "checkout.backToPlans": "योजनांकडे परत जा",
+    "checkout.secureCheckout": "सुरक्षित चेकआउट",
+    "checkout.ssl": "256-बिट SSL एन्क्रिप्टेड · Razorpay द्वारे संचालित",
+    "checkout.paymentMethod": "पेमेंट पद्धत",
+    "checkout.plan": "योजना",
+    "checkout.amountPaid": "भरलेली रक्कम",
+    "checkout.validUntil": "पर्यंत वैध",
+    "checkout.transactionId": "व्यवहार ID",
+    "checkout.goToDashboard": "डॅशबोर्डवर जा",
     "checkout.upi": "UPI",
     "checkout.card": "क्रेडिट / डेबिट कार्ड",
     "checkout.wallet": "वॉलेट",
+
+    /* BHOOMI */
+    "bhoomi.online": "ऑनलाइन",
+    "bhoomi.listening": "ऐकत आहे… आता बोला",
+    "bhoomi.placeholder": "BHOOMI ला काहीही विचारा…",
+    "bhoomi.voiceHint": "मराठी, हिंदी, इंग्रजीत बोला · व्हॉइस नेव्हिगेशन सक्षम",
+    "bhoomi.noMic": "तुमच्या ब्राउझरमध्ये व्हॉइस इनपुट समर्थित नाही. कृपया टाइप करा.",
+    "bhoomi.micError": "मला समजले नाही. कृपया स्पष्टपणे बोला किंवा टाइप करा.",
 
     /* Common */
     "common.loading": "लोड होत आहे...",
@@ -565,7 +741,19 @@ interface LanguageContextValue {
 const LanguageContext = createContext<LanguageContextValue | null>(null);
 
 export function LanguageProvider({ children }: { children: ReactNode }) {
-  const [lang, setLang] = useState<LangCode>("EN");
+  const [lang, setLangState] = useState<LangCode>(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY) as LangCode | null;
+      return saved && ["EN", "HI", "MR"].includes(saved) ? saved : "EN";
+    } catch {
+      return "EN";
+    }
+  });
+
+  const setLang = useCallback((code: LangCode) => {
+    try { localStorage.setItem(STORAGE_KEY, code); } catch {}
+    setLangState(code);
+  }, []);
 
   const t = useCallback(
     (key: string, fallback?: string): string => {

@@ -1,0 +1,210 @@
+Upgrade my existing AgroLens project carefully. This is not a rebuild. It is an in-place enhancement of the current codebase.
+
+Important:
+
+* Finish all tasks in this stage completely before stopping.
+* Keep all current crop scanning and prediction functionality working.
+* Keep code lightweight for a free Replit environment.
+* If needed, simplify architecture instead of overengineering.
+* Do not implement OTP, HydroTrack integration, scan history redesign, or notifications in this stage.
+
+==================================================
+STAGE 1 OBJECTIVE
+=================
+
+Fully complete these 5 items in this stage:
+
+1. Update subscription pricing everywhere
+2. Add a working translation system for the full website
+3. Upgrade BHOOMI to support multilingual voice input and multilingual responses
+4. Make recommendations react to selected language
+5. Keep the UI visually consistent with the AgroLens dark premium theme
+
+Everything in this stage must be usable immediately after implementation.
+
+==================================================
+
+1. UPDATE SUBSCRIPTION PRICING EVERYWHERE
+   ==================================================
+
+Change subscription pricing everywhere in the project.
+
+New pricing:
+
+* Monthly Premium Plan = 79
+* Yearly Premium Plan = 849
+
+Required:
+
+* Replace old monthly price 199 with 79 everywhere
+* Replace yearly price everywhere with 849
+* Update:
+
+  * pricing page
+  * pricing cards
+  * checkout/upgrade buttons
+  * premium gate messages
+  * subscription info in profile
+  * subscription constants/config
+  * any plan comparison blocks
+  * any hardcoded text
+* Make sure no old pricing remains anywhere in the app
+
+Also improve pricing UI:
+
+* Free plan clearly marked
+* Premium plan clearly marked
+* Yearly plan can show “Best Value”
+* Feature list must be readable and clean
+* Keep dark premium styling
+
+==================================================
+2. ADD FULL WEBSITE TRANSLATION SYSTEM
+======================================
+
+Implement a simple but working i18n system that fits a free Replit project and is easy to maintain.
+
+Languages required:
+
+* English
+* Hindi
+* Marathi
+
+Requirements:
+
+* Add a central translation layer using JSON/dictionary files and a lightweight context/provider or equivalent
+* Replace major visible hardcoded UI text with translation keys
+* Add English fallback if any key is missing
+* Add a usable language selector in the UI if not present
+* Language choice should persist using localStorage
+
+Translate all major visible UI in these areas:
+
+* navbar
+* landing page
+* feature cards
+* login
+* register
+* profile
+* BHOOMI chat UI
+* crop upload section
+* prediction result section
+* recommendations
+* subscription/pricing
+* premium lock messages
+* settings
+* dashboard labels
+* scan history labels placeholder text
+* onboarding/tutorial labels placeholder text
+* notifications labels placeholder text
+
+Important:
+
+* When language changes, the visible website UI should update immediately
+* If language is changed from profile settings later, it should reflect everywhere
+* Keep system extensible for more languages later
+
+==================================================
+3. UPGRADE BHOOMI TO MULTILINGUAL VOICE SUPPORT
+===============================================
+
+Upgrade BHOOMI chatbot so it supports multilingual voice interaction in a practical Replit-friendly way.
+
+Required features:
+
+* Add microphone button to chat input area
+* Allow user to speak instead of typing
+* Use browser-based speech recognition if practical
+* Support at least:
+
+  * English
+  * Hindi
+  * Marathi
+* Recognize speech and convert to text
+* Put recognized text into the BHOOMI chat flow
+* Respond in the same language or the currently selected site language
+* If microphone access is denied, gracefully fallback to typed chat
+* Add visible status states:
+
+  * idle
+  * listening
+  * processing
+  * success
+  * error
+
+Behavior rule:
+
+* If the user has selected a site language, BHOOMI should prefer that language
+* If detected speech clearly matches a supported language, use that language for the response
+* If uncertain, fallback to English
+* Keep this logic simple and reliable
+
+If practical:
+
+* Add optional text-to-speech output
+* If not practical for this stage, prepare a clean helper/service for future TTS integration without breaking anything now
+
+==================================================
+4. RECOMMENDATIONS MUST TRANSLATE TOO
+=====================================
+
+Update the recommendation UI so it also responds properly to language changes.
+
+Translate recommendation area labels and supporting UI for:
+
+* treatment recommendation
+* fertilizer suggestion
+* pesticide suggestion
+* dosage guidance
+* preventive care
+* organic alternative
+* irrigation advice placeholder
+* risk / severity labels if present
+
+Requirements:
+
+* When the site language changes, recommendation labels must change too
+* Recommendation cards/sections must remain readable and styled consistently
+* Keep structure future-ready for AI-generated multilingual recommendations later
+
+==================================================
+5. KEEP UI CONSISTENT
+=====================
+
+While implementing this stage, keep the AgroLens theme consistent.
+
+Theme guidance:
+
+* page background: #0b1420
+* dark gradient blend: #081423, #182334, #233244, #173a33
+* left hero solid panel: #2b3448 or #253248
+* right tinted section: #304a45 or #2d4a43
+* cards: #364258
+* border: rgba(255,255,255,0.08)
+* primary text: #f5f7fa
+* secondary text: #c7d0dc
+* accent green: #22c55e
+* muted green: #7ee7a8
+
+Do not redesign the app. Only keep the styling polished and consistent while implementing the above features.
+
+==================================================
+STAGE 1 COMPLETION CHECK
+========================
+
+Before stopping, verify:
+
+* all old pricing is removed
+* language selector works
+* UI text changes between English, Hindi, Marathi
+* BHOOMI voice input works in supported languages or has safe fallback
+* recommendation labels also translate
+* no current scan flow is broken
+
+At the end provide:
+
+1. changed files
+2. completed items
+3. any mock/browser-limited parts
+4. where translation files are stored
+5. where pricing was updated

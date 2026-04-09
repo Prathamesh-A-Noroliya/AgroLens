@@ -4,13 +4,14 @@ import { useLocation } from "wouter";
 import {
   ChevronLeft, CreditCard, Smartphone, Wallet,
   Lock, CheckCircle2, Leaf, ChevronRight, Shield,
-  Star, X, Sparkles, ArrowRight,
+  Star, Sparkles,
 } from "lucide-react";
 import AppLayout from "@/components/layout/AppLayout";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useLanguage } from "@/lib/language-context";
 import { cn } from "@/lib/utils";
 
 /* ─── Payment method types ───────────────────────────── */
@@ -18,37 +19,40 @@ import { cn } from "@/lib/utils";
 type Method = "upi" | "card" | "wallet";
 
 const PAYMENT_METHODS: Array<{ id: Method; label: string; icon: React.ElementType; sub: string }> = [
-  { id: "upi", label: "UPI", icon: Smartphone, sub: "GPay, PhonePe, Paytm, BHIM" },
-  { id: "card", label: "Credit / Debit Card", icon: CreditCard, sub: "Visa, Mastercard, RuPay" },
-  { id: "wallet", label: "Mobile Wallet", icon: Wallet, sub: "Paytm, Amazon Pay, Mobikwik" },
+  { id: "upi",    label: "UPI",                  icon: Smartphone, sub: "GPay, PhonePe, Paytm, BHIM" },
+  { id: "card",   label: "Credit / Debit Card",   icon: CreditCard, sub: "Visa, Mastercard, RuPay"    },
+  { id: "wallet", label: "Mobile Wallet",          icon: Wallet,     sub: "Paytm, Amazon Pay, Mobikwik" },
 ];
 
 const UPI_APPS = [
-  { name: "GPay", emoji: "🅶" },
+  { name: "GPay",    emoji: "🅶" },
   { name: "PhonePe", emoji: "🟣" },
-  { name: "Paytm", emoji: "🔵" },
-  { name: "BHIM", emoji: "🇮🇳" },
+  { name: "Paytm",   emoji: "🔵" },
+  { name: "BHIM",    emoji: "🇮🇳" },
 ];
 
 const WALLETS = [
-  { name: "Paytm Wallet", emoji: "💙" },
-  { name: "Amazon Pay", emoji: "🟠" },
-  { name: "Mobikwik", emoji: "💛" },
-  { name: "FreeCharge", emoji: "🟢" },
+  { name: "Paytm Wallet",  emoji: "💙" },
+  { name: "Amazon Pay",    emoji: "🟠" },
+  { name: "Mobikwik",      emoji: "💛" },
+  { name: "FreeCharge",    emoji: "🟢" },
 ];
 
+/* ─── Updated pricing ────────────────────────────────── */
+
 const ORDER_SUMMARY = {
-  plan: "AgroLens Pro — Yearly",
-  price: "₹2,388",
-  per: "₹199/month",
-  trial: "7 days free",
-  saving: "Saving ₹1,200 vs monthly",
+  plan:    "AgroLens Pro — Yearly",
+  price:   "₹849",
+  per:     "₹70.75/month",
+  trial:   "7 days free",
+  saving:  "Saving ₹99 vs monthly",
 };
 
 /* ─── Success Modal ──────────────────────────────────── */
 
 function SuccessModal({ onClose }: { onClose: () => void }) {
   const [, navigate] = useLocation();
+  const { t } = useLanguage();
 
   return (
     <motion.div
@@ -76,7 +80,6 @@ function SuccessModal({ onClose }: { onClose: () => void }) {
           <div className="w-24 h-24 rounded-full bg-emerald-50 border-4 border-emerald-200 flex items-center justify-center">
             <CheckCircle2 className="h-12 w-12 text-emerald-500" />
           </div>
-          {/* Sparkles */}
           {[0, 1, 2, 3, 4, 5].map((i) => (
             <motion.div
               key={i}
@@ -95,10 +98,8 @@ function SuccessModal({ onClose }: { onClose: () => void }) {
         </motion.div>
 
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
-          <h2 className="text-xl font-bold text-foreground mb-1">Payment Successful!</h2>
-          <p className="text-muted-foreground text-sm">
-            Welcome to AgroLens Pro. Your account has been upgraded instantly.
-          </p>
+          <h2 className="text-xl font-bold text-foreground mb-1">{t("checkout.success")}</h2>
+          <p className="text-muted-foreground text-sm">{t("checkout.welcomePro")}</p>
         </motion.div>
 
         <motion.div
@@ -108,32 +109,29 @@ function SuccessModal({ onClose }: { onClose: () => void }) {
           className="bg-primary/5 border border-primary/20 rounded-2xl p-4 text-left space-y-2"
         >
           <div className="flex items-center justify-between text-sm">
-            <span className="text-muted-foreground">Plan</span>
+            <span className="text-muted-foreground">{t("checkout.plan")}</span>
             <span className="font-semibold text-foreground">AgroLens Pro Yearly</span>
           </div>
           <div className="flex items-center justify-between text-sm">
-            <span className="text-muted-foreground">Amount paid</span>
-            <span className="font-bold text-foreground">₹2,388</span>
+            <span className="text-muted-foreground">{t("checkout.amountPaid")}</span>
+            <span className="font-bold text-foreground">₹849</span>
           </div>
           <div className="flex items-center justify-between text-sm">
-            <span className="text-muted-foreground">Valid until</span>
-            <span className="font-semibold text-foreground">Apr 3, 2027</span>
+            <span className="text-muted-foreground">{t("checkout.validUntil")}</span>
+            <span className="font-semibold text-foreground">Apr 9, 2027</span>
           </div>
           <div className="flex items-center justify-between text-sm">
-            <span className="text-muted-foreground">Transaction ID</span>
+            <span className="text-muted-foreground">{t("checkout.transactionId")}</span>
             <span className="font-mono text-xs text-muted-foreground">TXN{Date.now().toString().slice(-8)}</span>
           </div>
         </motion.div>
 
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.55 }} className="space-y-2">
           <Button className="w-full rounded-xl h-11 font-semibold gap-2" onClick={() => navigate("/dashboard")}>
-            <Sparkles className="h-4 w-4" /> Go to Dashboard
+            <Sparkles className="h-4 w-4" /> {t("checkout.goToDashboard")}
           </Button>
-          <button
-            className="w-full text-xs text-muted-foreground hover:text-foreground transition-colors"
-            onClick={onClose}
-          >
-            Close
+          <button className="w-full text-xs text-muted-foreground hover:text-foreground transition-colors" onClick={onClose}>
+            {t("common.close")}
           </button>
         </motion.div>
       </motion.div>
@@ -145,6 +143,7 @@ function SuccessModal({ onClose }: { onClose: () => void }) {
 
 export default function CheckoutPage() {
   const [, navigate] = useLocation();
+  const { t } = useLanguage();
   const [method, setMethod] = useState<Method>("upi");
   const [selectedUpi, setSelectedUpi] = useState("GPay");
   const [selectedWallet, setSelectedWallet] = useState("Paytm Wallet");
@@ -181,12 +180,12 @@ export default function CheckoutPage() {
         {/* Header */}
         <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}>
           <button onClick={() => navigate("/subscription")} className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors mb-3">
-            <ChevronLeft className="h-4 w-4" /> Back to Plans
+            <ChevronLeft className="h-4 w-4" /> {t("checkout.backToPlans")}
           </button>
-          <h1 className="text-2xl font-bold text-foreground">Secure Checkout</h1>
+          <h1 className="text-2xl font-bold text-foreground">{t("checkout.secureCheckout")}</h1>
           <div className="flex items-center gap-1.5 text-xs text-muted-foreground mt-1">
             <Lock className="h-3.5 w-3.5 text-emerald-500" />
-            256-bit SSL encrypted · Powered by Razorpay
+            {t("checkout.ssl")}
           </div>
         </motion.div>
 
@@ -215,7 +214,7 @@ export default function CheckoutPage() {
 
         {/* Payment Method Selector */}
         <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.14 }}>
-          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-widest mb-3">Payment Method</p>
+          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-widest mb-3">{t("checkout.paymentMethod")}</p>
           <div className="space-y-2">
             {PAYMENT_METHODS.map(({ id, label, icon: Icon, sub }) => (
               <button
@@ -387,12 +386,12 @@ export default function CheckoutPage() {
                   animate={{ rotate: 360 }}
                   transition={{ duration: 0.8, repeat: Infinity, ease: "linear" }}
                 />
-                Processing Payment…
+                {t("checkout.processing")}
               </>
             ) : (
               <>
                 <Lock className="h-5 w-5" />
-                Pay ₹2,388 Securely
+                {t("checkout.paySecurely")}
                 <ChevronRight className="h-5 w-5" />
               </>
             )}

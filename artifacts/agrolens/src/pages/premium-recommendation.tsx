@@ -13,6 +13,7 @@ import AppLayout from "@/components/layout/AppLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { useLanguage } from "@/lib/language-context";
 
 /* ─── Mock Data ──────────────────────────────────────── */
 
@@ -125,6 +126,7 @@ const item = {
 
 export default function PremiumRecommendationPage() {
   const [, navigate] = useLocation();
+  const { t } = useLanguage();
 
   return (
     <AppLayout>
@@ -133,7 +135,7 @@ export default function PremiumRecommendationPage() {
         {/* Header */}
         <motion.div variants={item}>
           <button onClick={() => navigate("/recommendations")} className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors mb-2">
-            <ArrowLeft className="h-3.5 w-3.5" /> Back
+            <ArrowLeft className="h-3.5 w-3.5" /> {t("common.back")}
           </button>
           <div className="flex items-start justify-between gap-3 flex-wrap">
             <div>
@@ -155,7 +157,7 @@ export default function PremiumRecommendationPage() {
           <Card className="rounded-2xl border-border/60 shadow-sm">
             <CardHeader className="pt-5 px-5 pb-3">
               <CardTitle className="text-sm font-semibold text-foreground flex items-center gap-2">
-                <ShieldCheck className="h-4 w-4 text-primary" /> Treatment Protocol
+                <ShieldCheck className="h-4 w-4 text-primary" /> {t("reco.treatment")}
               </CardTitle>
             </CardHeader>
             <CardContent className="px-5 pb-5 space-y-3">
@@ -196,7 +198,7 @@ export default function PremiumRecommendationPage() {
           <Card className="rounded-2xl border-border/60 shadow-sm">
             <CardHeader className="pt-5 px-5 pb-3">
               <CardTitle className="text-sm font-semibold text-foreground flex items-center gap-2">
-                <FlaskConical className="h-4 w-4 text-amber-500" /> Fertilizer Dosage Plan
+                <FlaskConical className="h-4 w-4 text-amber-500" /> {t("reco.fertilizer")}
               </CardTitle>
             </CardHeader>
             <CardContent className="px-5 pb-5">
@@ -235,7 +237,7 @@ export default function PremiumRecommendationPage() {
           <Card className="rounded-2xl border-border/60 shadow-sm">
             <CardHeader className="pt-5 px-5 pb-3">
               <CardTitle className="text-sm font-semibold text-foreground flex items-center gap-2">
-                <Droplets className="h-4 w-4 text-blue-500" /> Application Methods
+                <Droplets className="h-4 w-4 text-blue-500" /> {t("reco.application")}
               </CardTitle>
             </CardHeader>
             <CardContent className="px-5 pb-5 space-y-3">
@@ -255,7 +257,7 @@ export default function PremiumRecommendationPage() {
                       <p className="text-sm font-semibold text-foreground">{method}</p>
                       {recommended && (
                         <span className="text-[10px] bg-primary text-primary-foreground font-bold px-2 py-0.5 rounded-full">
-                          Recommended
+                          {t("reco.recommended")}
                         </span>
                       )}
                     </div>
@@ -273,10 +275,10 @@ export default function PremiumRecommendationPage() {
             <CardHeader className="pt-5 px-5 pb-3">
               <div className="flex items-center justify-between">
                 <CardTitle className="text-sm font-semibold text-foreground flex items-center gap-2">
-                  <Sprout className="h-4 w-4 text-emerald-500" /> Organic Alternatives
+                  <Sprout className="h-4 w-4 text-emerald-500" /> {t("reco.organic")}
                 </CardTitle>
                 <Badge className="bg-emerald-50 text-emerald-700 border-emerald-200 text-[10px] font-semibold">
-                  Zero Chemical
+                  {t("reco.organic.badge")}
                 </Badge>
               </div>
             </CardHeader>
@@ -316,7 +318,7 @@ export default function PremiumRecommendationPage() {
             <CardHeader className="pt-5 px-5 pb-3">
               <div className="flex items-center justify-between flex-wrap gap-2">
                 <CardTitle className="text-sm font-semibold text-foreground flex items-center gap-2">
-                  <Star className="h-4 w-4 text-amber-500" /> Historical Disease Occurrence
+                  <Star className="h-4 w-4 text-amber-500" /> {t("reco.historicalData")}
                 </CardTitle>
                 <span className="text-xs text-muted-foreground">Your region · 2019–2024</span>
               </div>
