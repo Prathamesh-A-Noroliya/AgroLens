@@ -16,6 +16,7 @@ import SubscriptionPage from "@/pages/subscription";
 import CheckoutPage from "@/pages/checkout";
 import PlaceholderPage from "@/pages/placeholder";
 import ProfilePage from "@/pages/profile";
+import IrrigationPage from "@/pages/irrigation";
 import { MessageSquare, Lightbulb } from "lucide-react";
 
 const queryClient = new QueryClient();
@@ -55,6 +56,9 @@ function Router() {
       </Route>
       <Route path="/premium-recommendation">
         <ProtectedRoute component={PremiumRecommendationPage} />
+      </Route>
+      <Route path="/irrigation">
+        <ProtectedRoute component={IrrigationPage} />
       </Route>
       <Route path="/history">
         <ProtectedRoute component={HistoryPage} />
