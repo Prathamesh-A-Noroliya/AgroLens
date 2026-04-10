@@ -100,17 +100,27 @@ export default function Header({ onMenuToggle, sidebarOpen }: HeaderProps) {
           </DropdownMenuContent>
         </DropdownMenu>
 
+        {/* Demo Mode badge */}
+        {user?.isDemoUser && (
+          <div className="hidden sm:flex items-center gap-1 px-2.5 py-1 rounded-full bg-amber-100 border border-amber-300/60 text-amber-700 text-[11px] font-bold">
+            <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse shrink-0" />
+            Demo Mode
+          </div>
+        )}
+
         {/* User avatar */}
         {user && (
           <div className="flex items-center gap-2 ml-1">
             <div
-              className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-semibold shadow-sm gradient-primary"
+              className={`w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-semibold shadow-sm ${
+                user.isDemoUser ? "bg-amber-500" : "gradient-primary"
+              }`}
             >
               {user.fullName.charAt(0).toUpperCase()}
             </div>
             <div className="hidden md:flex flex-col leading-tight">
               <span className="text-xs font-semibold text-foreground truncate max-w-[120px]">{user.fullName}</span>
-              <span className="text-[10px] text-muted-foreground">{user.farmerId}</span>
+              <span className="text-[10px] text-muted-foreground">{user.isDemoUser ? "Demo Session" : user.farmerId}</span>
             </div>
           </div>
         )}

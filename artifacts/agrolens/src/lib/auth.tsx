@@ -10,6 +10,7 @@ export interface User {
   soilType: string;
   farmerId: string;
   isPremium: boolean;
+  isDemoUser?: boolean;
 }
 
 interface AuthContextType {
@@ -58,7 +59,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       cropType: "rice",
       soilType: "alluvial",
       farmerId: "AGR24-DEMO1",
-      isPremium: false,
+      isPremium: true,
+      isDemoUser: true,
     });
   };
 

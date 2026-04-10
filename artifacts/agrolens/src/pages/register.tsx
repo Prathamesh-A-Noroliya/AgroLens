@@ -6,7 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import {
   Leaf, User, Phone, Mail, Lock, Eye, EyeOff,
-  MapPin, Sprout, FlaskConical, CheckCircle2, ArrowRight, ArrowLeft
+  MapPin, Sprout, FlaskConical, CheckCircle2, XCircle, ArrowRight, ArrowLeft
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -38,11 +38,26 @@ const SOIL_TYPES = [
   "Saline","Peaty (Marshy)","Forest / Mountain","Loamy","Sandy","Clay","Silt",
 ];
 
+/* ── Password strength rules ────────────────────────── */
+const PW_RULES = [
+  { label: "At least 6 characters",      test: (p: string) => p.length >= 6 },
+  { label: "Uppercase letter (A–Z)",      test: (p: string) => /[A-Z]/.test(p) },
+  { label: "Lowercase letter (a–z)",      test: (p: string) => /[a-z]/.test(p) },
+  { label: "Number (0–9)",                test: (p: string) => /[0-9]/.test(p) },
+  { label: "Special character (!@#$…)",   test: (p: string) => /[^A-Za-z0-9]/.test(p) },
+];
+
 const registerSchema = z.object({
   fullName: z.string().min(2, "Enter your full name"),
   mobile: z.string().regex(/^[6-9]\d{9}$/, "Enter a valid 10-digit mobile number"),
   email: z.string().email("Enter a valid email address"),
-  password: z.string().min(8, "Password must be at least 8 characters"),
+  password: z
+    .string()
+    .min(6, "Password must be at least 6 characters")
+    .regex(/[A-Z]/, "Must contain at least one uppercase letter")
+    .regex(/[a-z]/, "Must contain at least one lowercase letter")
+    .regex(/[0-9]/, "Must contain at least one number")
+    .regex(/[^A-Za-z0-9]/, "Must contain at least one special character"),
   state: z.string().min(1, "Select your state"),
   cropType: z.string().min(1, "Select your primary crop"),
   soilType: z.string().min(1, "Select your soil type"),
@@ -56,6 +71,8 @@ export default function RegisterPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [farmerId, setFarmerId] = useState<string | null>(null);
+  const [passwordValue, setPasswordValue] = useState("");
+  const [pwFocused, setPwFocused] = useState(false);
 
   const { register, handleSubmit, setValue, watch, formState: { errors } } = useForm<RegisterForm>({
     resolver: zodResolver(registerSchema),
@@ -203,9 +220,14 @@ export default function RegisterPage() {
               <Input
                 id="password"
                 type={showPassword ? "text" : "password"}
-                placeholder="Min. 8 characters"
-                className="pl-10 pr-10 h-12 rounded-xl"
-                {...register("password")}
+                placeholder="Create a strong password"
+                className={`pl-10 pr-10 h-12 rounded-xl transition-all ${
+                  passwordValue && PW_RULES.every((r) => r.test(passwordValue))
+                    ? "border-emerald-400/70" : ""
+                }`}
+                {...register("password", { onChange: (e) => setPasswordValue(e.target.value) })}
+                onFocus={() => setPwFocused(true)}
+                onBlur={() => setPwFocused(false)}
               />
               <button
                 type="button"
@@ -215,7 +237,29 @@ export default function RegisterPage() {
                 {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
               </button>
             </div>
-            {errors.password && <p className="text-destructive text-xs">{errors.password.message}</p>}
+            {/* Real-time password strength checklist */}
+            {(pwFocused || passwordValue.length > 0) && (
+              <div className="bg-muted/50 border border-border/60 rounded-xl px-3 py-2.5 space-y-1.5">
+                {PW_RULES.map((rule) => {
+                  const passed = rule.test(passwordValue);
+                  return (
+                    <div key={rule.label} className="flex items-center gap-2 text-xs">
+                      {passed
+                        ? <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500 shrink-0" />
+                        : <XCircle className="h-3.5 w-3.5 text-muted-foreground/40 shrink-0" />}
+                      <span className={passed ? "text-emerald-700 font-medium" : "text-muted-foreground"}>
+                        {rule.label}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+            {errors.password && !pwFocused && (
+              <p className="text-destructive text-xs flex items-center gap-1">
+                <XCircle className="h-3 w-3 shrink-0" /> {errors.password.message}
+              </p>
+            )}
           </div>
 
           {/* State */}
