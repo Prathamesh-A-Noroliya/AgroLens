@@ -6,6 +6,7 @@ import {
   CheckCircle2, FlaskConical, ShieldAlert, ArrowLeft,
   Share2, Sprout, Info, Clock, MapPin, X,
   Star, Phone, MessageSquare, Users, Sparkles, UserCheck,
+  ShieldCheck, Zap,
 } from "lucide-react";
 import AppLayout from "@/components/layout/AppLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -127,6 +128,52 @@ const SEV: Record<Severity, { label: string; color: string; bg: string; border: 
   moderate: { label: "Moderate", color: "text-amber-600", bg: "bg-amber-50", border: "border-amber-200", badge: "bg-amber-50 text-amber-700 border-amber-200", headerBg: "from-amber-50 to-amber-50/30" },
   mild:     { label: "Mild",     color: "text-blue-600",  bg: "bg-blue-50",  border: "border-blue-200",  badge: "bg-blue-50 text-blue-700 border-blue-200",   headerBg: "from-blue-50 to-blue-50/30"   },
 };
+
+/* ─── Quick recommendation helper ───────────────────── */
+
+interface QuickRecs {
+  pesticide: { product: string; dosage: string; method: string };
+  organic: { product: string; dosage: string; benefit: string };
+  preventive: string[];
+}
+
+function getQuickRecs(disease: string, quickFix: string): QuickRecs {
+  const d = disease.toLowerCase();
+
+  if (d.includes("rust")) return {
+    pesticide: { product: "Propiconazole 25% EC", dosage: "1 ml / litre water", method: "Knapsack sprayer — both leaf surfaces. Apply 6–9 AM when wind is calm." },
+    organic: { product: "Trichoderma viride", dosage: "4 g / litre water", benefit: "Parasitises fungal spores; safe for beneficial insects & soil microbiome." },
+    preventive: ["Avoid overhead irrigation — wet foliage accelerates rust spread.", "Remove and burn all infected leaf debris after each spray.", "Rotate fungicide class: Tebuconazole on 2nd spray (Day 10–14) to prevent resistance."],
+  };
+  if (d.includes("blast")) return {
+    pesticide: { product: "Tricyclazole 75% WP", dosage: "0.6 g / litre water", method: "Apply at tillering and panicle initiation. Avoid midday application." },
+    organic: { product: "Pseudomonas fluorescens", dosage: "10 g / litre water", benefit: "Biocontrol + plant growth promoter; apply as soil drench at root zone." },
+    preventive: ["Maintain correct plant spacing — overcrowding traps humidity.", "Use silicon-enriched fertilizers to strengthen leaf cell walls.", "Monitor weather closely: blast favours 22–28°C with >90% humidity."],
+  };
+  if (d.includes("blight") && d.includes("late")) return {
+    pesticide: { product: "Metalaxyl + Mancozeb", dosage: "2.5 g / litre water", method: "Full plant coverage spray including stems and tuber hills. Repeat every 5 days." },
+    organic: { product: "Neem Oil 3000 ppm", dosage: "5 ml + 1 ml soap / litre", benefit: "Disrupts spore germination; also repels aphid vectors. Biodegradable." },
+    preventive: ["Destroy infected plant material — Late Blight spreads in 48 hours.", "Avoid irrigating in the evening — wet soil overnight accelerates spread.", "Hill up soil around tuber rows to protect developing potatoes."],
+  };
+  if (d.includes("blight") || d.includes("spot")) return {
+    pesticide: { product: "Mancozeb 75% WP", dosage: "2 g / litre water", method: "Foliar spray ensuring coverage of undersides. Repeat every 7 days." },
+    organic: { product: "Neem Oil 3000 ppm", dosage: "5 ml + 1 ml soap / litre", benefit: "Natural antifungal + repels aphids and whiteflies that spread blight." },
+    preventive: ["Remove lower infected leaves first — they are the primary spread source.", "Avoid splash irrigation — use drip if possible.", "Apply mulch to prevent spore splash-back from soil to leaves."],
+  };
+  if (d.includes("curl") || d.includes("viral")) return {
+    pesticide: { product: "Imidacloprid 17.8% SL", dosage: "0.5 ml / litre water", method: "Spray whitefly vector population on leaf undersides. Repeat every 10 days." },
+    organic: { product: "Neem Oil + Yellow Sticky Traps", dosage: "5 ml / litre + traps every 10m", benefit: "Repels whitefly; traps monitor and reduce vector pressure organically." },
+    preventive: ["Remove and destroy affected plants immediately to limit viral spread.", "Grow barrier crops like maize or sorghum around the field perimeter.", "Use reflective mulch to deter whitefly from landing on seedlings."],
+  };
+  // Generic fallback
+  const pestProduct = quickFix.includes(" at ") ? quickFix.split(" at ")[0] : quickFix;
+  const pestDosage  = quickFix.includes(" at ") ? quickFix.split(" at ")[1] : "As directed on label";
+  return {
+    pesticide: { product: pestProduct, dosage: pestDosage, method: "Spray both leaf surfaces thoroughly. Apply early morning. Repeat in 10–14 days." },
+    organic: { product: "Neem Oil 3000 ppm", dosage: "5 ml + 1 ml soap / litre", benefit: "Natural antifungal; repels insect vectors. Safe and biodegradable." },
+    preventive: ["Remove infected plant material from the field immediately.", "Avoid working in the field when leaves are wet to prevent spread.", "Improve air circulation with proper plant spacing and pruning."],
+  };
+}
 
 /* ─── Animated bar ───────────────────────────────────── */
 
@@ -556,38 +603,122 @@ export default function ScanResultPage() {
           </div>
         </div>
 
-        {/* Premium CTA */}
-        <motion.div variants={item}>
-          <Card className="rounded-2xl border-border/60 shadow-sm overflow-hidden">
-            <CardHeader className="pt-5 px-5 pb-3">
+        {/* ── BHOOMI Treatment Recommendations (visible) ── */}
+        {(() => {
+          const qr = getQuickRecs(outcome1.disease, outcome1.quickFix);
+          return (
+            <motion.div variants={item} className="space-y-3">
               <div className="flex items-center justify-between">
-                <CardTitle className="text-sm font-semibold text-foreground flex items-center gap-2">
-                  <Lock className="h-4 w-4 text-primary" /> Full BHOOMI Treatment Protocol
-                </CardTitle>
-                <Badge className="text-[10px] bg-amber-100 text-amber-700 border-amber-200">Premium</Badge>
+                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-widest flex items-center gap-1.5">
+                  <Zap className="h-3.5 w-3.5 text-amber-500" /> BHOOMI Treatment Recommendations
+                </p>
+                <button
+                  onClick={() => navigate("/recommendations")}
+                  className="text-xs text-primary font-semibold hover:underline flex items-center gap-1"
+                >
+                  All recs <ChevronRight className="h-3 w-3" />
+                </button>
               </div>
-            </CardHeader>
-            <CardContent className="px-5 pb-5">
-              <div className="space-y-0 divide-y divide-border/60 mb-4">
-                {["Propiconazole 25% EC — exact spray schedule and mix ratios", "10-day follow-up protocol with fungicide rotation plan", "Post-treatment nitrogen dosage and timing", "Organic Trichoderma + Neem oil alternative program"].map((line) => (
-                  <div key={line} className="flex items-center gap-3 py-2.5 opacity-50 select-none">
-                    <Lock className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
-                    <span className="text-sm text-muted-foreground blur-[3px] flex-1 pointer-events-none">{line}</span>
+
+              {/* Pesticide card */}
+              <Card className="rounded-2xl border-l-4 border-l-red-400 border-border/60 shadow-sm">
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-2.5 mb-3">
+                    <div className="w-9 h-9 rounded-xl bg-red-50 border border-red-200 flex items-center justify-center shrink-0">
+                      <FlaskConical className="h-4.5 w-4.5 text-red-600" />
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <p className="text-sm font-bold text-foreground">{qr.pesticide.product}</p>
+                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-red-50 text-red-700 border border-red-200">Pesticide</span>
+                      </div>
+                      <p className="text-xs text-muted-foreground">{outcome1.disease} — {scanData.cropType}</p>
+                    </div>
                   </div>
-                ))}
-              </div>
+                  <div className="grid grid-cols-2 gap-2 mb-2">
+                    <div className="bg-muted/40 rounded-xl p-2.5 border border-border/30">
+                      <p className="text-[10px] text-muted-foreground uppercase tracking-wide font-semibold mb-1">Dosage</p>
+                      <p className="text-xs font-bold text-foreground">{qr.pesticide.dosage}</p>
+                    </div>
+                    <div className="bg-muted/40 rounded-xl p-2.5 border border-border/30">
+                      <p className="text-[10px] text-muted-foreground uppercase tracking-wide font-semibold mb-1">Priority</p>
+                      <p className={`text-xs font-bold ${SEV[outcome1.severity].color}`}>{SEV[outcome1.severity].label} — Act within {outcome1.treatmentWindow}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-2 bg-muted/30 rounded-xl px-3 py-2">
+                    <Info className="h-3.5 w-3.5 text-primary shrink-0 mt-0.5" />
+                    <p className="text-xs text-muted-foreground leading-relaxed">{qr.pesticide.method}</p>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Organic card */}
+              <Card className="rounded-2xl border-l-4 border-l-emerald-400 border-border/60 shadow-sm">
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-2.5 mb-3">
+                    <div className="w-9 h-9 rounded-xl bg-emerald-50 border border-emerald-200 flex items-center justify-center shrink-0">
+                      <Sprout className="h-4.5 w-4.5 text-emerald-600" />
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <p className="text-sm font-bold text-foreground">{qr.organic.product}</p>
+                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">Organic</span>
+                      </div>
+                      <p className="text-xs text-muted-foreground">Eco-friendly alternative — zero chemical residue</p>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2 mb-2">
+                    <div className="bg-muted/40 rounded-xl p-2.5 border border-border/30">
+                      <p className="text-[10px] text-muted-foreground uppercase tracking-wide font-semibold mb-1">Dosage</p>
+                      <p className="text-xs font-bold text-foreground">{qr.organic.dosage}</p>
+                    </div>
+                    <div className="bg-emerald-50 rounded-xl p-2.5 border border-emerald-100">
+                      <p className="text-[10px] text-emerald-700 uppercase tracking-wide font-semibold mb-1">Benefit</p>
+                      <p className="text-xs font-semibold text-emerald-800 leading-snug">{qr.organic.benefit.split(";")[0]}</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Preventive card */}
+              <Card className="rounded-2xl border-l-4 border-l-blue-400 border-border/60 shadow-sm">
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-2.5 mb-3">
+                    <div className="w-9 h-9 rounded-xl bg-blue-50 border border-blue-200 flex items-center justify-center shrink-0">
+                      <ShieldCheck className="h-4.5 w-4.5 text-blue-600" />
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <p className="text-sm font-bold text-foreground">Preventive Actions</p>
+                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200">Preventive</span>
+                      </div>
+                      <p className="text-xs text-muted-foreground">Follow these steps to stop further spread</p>
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    {qr.preventive.map((action, i) => (
+                      <div key={i} className="flex items-start gap-2.5 bg-muted/30 rounded-xl px-3 py-2.5">
+                        <span className="w-4.5 h-4.5 rounded-full bg-blue-100 text-blue-700 text-[10px] font-bold flex items-center justify-center shrink-0 mt-0.5">{i + 1}</span>
+                        <p className="text-xs text-foreground leading-relaxed">{action}</p>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* View full plan CTA */}
               <motion.button
-                whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }}
+                whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.98 }}
                 onClick={() => navigate("/premium-recommendation")}
-                className="w-full h-12 rounded-xl bg-gradient-to-r from-primary to-emerald-600 text-white text-sm font-bold shadow-md flex items-center justify-center gap-2"
+                className="w-full h-12 rounded-xl text-white text-sm font-bold shadow-md flex items-center justify-center gap-2 border-0"
+                style={{ background: "linear-gradient(135deg, hsl(142 62% 36%), hsl(196 70% 44%))" }}
               >
-                <Lock className="h-4 w-4" /> Unlock Full Recommendations
+                <Star className="h-4 w-4" /> View Full 10-Day Treatment Plan
                 <ChevronRight className="h-4 w-4" />
               </motion.button>
-              <p className="text-center text-[11px] text-muted-foreground mt-2">AgroLens Pro · ₹79/month</p>
-            </CardContent>
-          </Card>
-        </motion.div>
+            </motion.div>
+          );
+        })()}
 
         {/* ── Consult an Agri-Expert ──────────────────── */}
         <ExpertHelpSection

@@ -17,6 +17,7 @@ import CheckoutPage from "@/pages/checkout";
 import PlaceholderPage from "@/pages/placeholder";
 import ProfilePage from "@/pages/profile";
 import IrrigationPage from "@/pages/irrigation";
+import RecommendationsPage from "@/pages/recommendations";
 import { MessageSquare, Lightbulb } from "lucide-react";
 
 const queryClient = new QueryClient();
@@ -46,13 +47,7 @@ function Router() {
         <ProtectedRoute component={ScanPage} />
       </Route>
       <Route path="/recommendations">
-        <ProtectedRoute component={() => (
-          <PlaceholderPage
-            title="Recommendations"
-            description="View all personalised crop care recommendations from BHOOMI AI."
-            icon={Lightbulb}
-          />
-        )} />
+        <ProtectedRoute component={RecommendationsPage} />
       </Route>
       <Route path="/premium-recommendation">
         <ProtectedRoute component={PremiumRecommendationPage} />

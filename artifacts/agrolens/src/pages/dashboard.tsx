@@ -4,7 +4,7 @@ import {
   Camera, CloudUpload, History, Bell, CheckCircle2,
   AlertTriangle, TrendingUp, Star, Leaf, Sun, Droplets,
   Wind, CloudRain, Thermometer, Zap, ArrowRight, Sparkles,
-  ShieldCheck, Clock,
+  ShieldCheck, Clock, FlaskConical, Sprout,
 } from "lucide-react";
 import { useLocation } from "wouter";
 import {
@@ -45,9 +45,30 @@ const SCAN_HISTORY = [
 ];
 
 const RECOMMENDATIONS = [
-  { text: "Apply copper-based fungicide to wheat in Field A within 48 hours.", priorityKey: "dashboard.urgent",  dot: "bg-red-500" },
-  { text: "Increase irrigation for rice paddies — soil moisture below optimal.", priorityKey: "dashboard.moderate", dot: "bg-amber-400" },
-  { text: "Rotate crops in Field C next season to reduce aphid risk.", priorityKey: "dashboard.info", dot: "bg-blue-400" },
+  {
+    icon: FlaskConical,
+    category: "Pesticide",
+    catBg: "bg-red-50", catColor: "text-red-600", catBorder: "border-red-200",
+    priority: "Urgent", priDot: "bg-red-500", priText: "text-red-600",
+    text: "Apply Propiconazole 25% EC (1 ml/L) to wheat in Field A.",
+    detail: "Yellow Rust detected — act within 48 hours to prevent 15–30% yield loss.",
+  },
+  {
+    icon: Sprout,
+    category: "Organic",
+    catBg: "bg-emerald-50", catColor: "text-emerald-600", catBorder: "border-emerald-200",
+    priority: "Moderate", priDot: "bg-amber-400", priText: "text-amber-600",
+    text: "Apply Neem Oil (5 ml/L) spray on rice in Field B.",
+    detail: "Minor leaf blight — neem oil controls spread and repels insect vectors.",
+  },
+  {
+    icon: ShieldCheck,
+    category: "Preventive",
+    catBg: "bg-blue-50", catColor: "text-blue-600", catBorder: "border-blue-200",
+    priority: "Tip", priDot: "bg-blue-400", priText: "text-blue-600",
+    text: "Rotate Field C to legumes next season.",
+    detail: "3-year aphid infestation history — crop rotation breaks the pest cycle.",
+  },
 ];
 
 const HOURLY_RAIN = [
