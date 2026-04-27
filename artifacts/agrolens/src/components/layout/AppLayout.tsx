@@ -11,8 +11,20 @@ export default function AppLayout({ children }: { children: ReactNode }) {
   return (
     <BhoomiProvider>
       <div className="min-h-screen bg-background">
-        <Header onMenuToggle={() => setSidebarOpen((v) => !v)} sidebarOpen={sidebarOpen} />
-        <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+        
+        {/* Header (LanguageSwitcher is inside Header) */}
+        <Header
+          onMenuToggle={() => setSidebarOpen((v) => !v)}
+          sidebarOpen={sidebarOpen}
+        />
+
+        {/* Sidebar */}
+        <Sidebar
+          open={sidebarOpen}
+          onClose={() => setSidebarOpen(false)}
+        />
+
+        {/* Main Content */}
         <main className="pt-16 lg:pl-64 min-h-screen">
           <motion.div
             initial={{ opacity: 0, y: 8 }}
@@ -23,7 +35,10 @@ export default function AppLayout({ children }: { children: ReactNode }) {
             {children}
           </motion.div>
         </main>
+
+        {/* Bhoomi AI Button */}
         <BhoomiButton />
+
       </div>
     </BhoomiProvider>
   );

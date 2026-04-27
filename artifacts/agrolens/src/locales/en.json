@@ -1,0 +1,46 @@
+{
+  "premium_plan": "Premium Treatment Plan",
+  "disease_info": "Yellow Leaf Rust — Wheat · Field A · Diagnosed Today",
+  "urgent_action": "Urgent — Act within 48h",
+
+  "immediate_isolation": "Immediate isolation",
+  "isolation_desc": "Separate infected plants from healthy ones. Remove and burn infected leaves immediately.",
+
+  "first_fungicide": "First fungicide application",
+  "fungicide_desc": "Apply Propiconazole 25% EC at 1 ml/litre water.",
+
+  "follow_up": "Follow-up spray",
+  "followup_desc": "Repeat application with Tebuconazole 25.9% EC.",
+
+  "recovery_monitoring": "Recovery monitoring",
+  "recovery_desc": "Inspect plants daily and check for new symptoms.",
+
+  "timing_now": "Day 0 — Right now",
+  "timing_24h": "Day 1 — Within 24 hours",
+  "timing_10_14": "Day 10–14",
+  "timing_7_21": "Day 7–21",
+
+  "nitrogen_warning": "Do not apply nitrogen while disease is active. Wait until recovery begins.",
+
+  "method_knapsack": "Knapsack Sprayer",
+  "method_knapsack_desc": "Spray early morning with full leaf coverage.",
+
+  "method_drip": "Drip Fertigation",
+  "method_drip_desc": "Use for water-soluble fertilizers via irrigation.",
+
+  "method_foliar": "Foliar Spray",
+  "method_foliar_desc": "Apply micronutrients directly on leaves.",
+
+  "trichoderma": "Trichoderma viride",
+  "trichoderma_benefit": "Biocontrol agent that fights fungal pathogens.",
+
+  "neem_oil": "Neem Oil",
+  "neem_benefit": "Natural antifungal and pest repellent.",
+
+  "renew_plan": "Renew Pro Plan to Keep Access",
+  "back": "Back",
+  "treatment": "Treatment Protocol",
+  "fertilizer": "Fertilizer Plan",
+  "application": "Application Methods",
+  "organic": "Organic Alternatives"
+}
